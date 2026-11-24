@@ -1,0 +1,719 @@
+{
+  "alerts": [
+    {
+      "id": 1777735494211,
+      "type": "cry",
+      "duration_sec": 0.6,
+      "note": "Baby crying detected (1s) \u2014 comfort message played",
+      "timestamp": "20:54:54",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 20:54:54",
+      "read": false
+    },
+    {
+      "id": 1777735595790,
+      "type": "cry",
+      "duration_sec": 0.6,
+      "note": "Baby crying detected (1s) \u2014 comfort message played",
+      "timestamp": "20:56:35",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 20:56:35",
+      "read": false
+    },
+    {
+      "id": 1777735651035,
+      "type": "cry",
+      "duration_sec": 0.6,
+      "note": "Baby crying detected (1s) \u2014 comfort message played",
+      "timestamp": "20:57:31",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 20:57:31",
+      "read": false
+    },
+    {
+      "id": 1777736285669,
+      "type": "cry",
+      "duration_sec": 0.6,
+      "note": "Baby crying detected (1s) \u2014 comfort message played",
+      "timestamp": "21:08:05",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:08:05",
+      "read": false
+    },
+    {
+      "id": 1777736309143,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "21:08:29",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:08:29",
+      "read": false
+    },
+    {
+      "id": 1777736342135,
+      "type": "cry",
+      "duration_sec": 0.6,
+      "note": "Baby crying detected (1s) \u2014 comfort message played",
+      "timestamp": "21:09:02",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:09:02",
+      "read": false
+    },
+    {
+      "id": 1777736850771,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "21:17:30",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:17:30",
+      "read": false
+    },
+    {
+      "id": 1777737017399,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "21:20:17",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:20:17",
+      "read": false
+    },
+    {
+      "id": 1777737072674,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "21:21:12",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:21:12",
+      "read": false
+    },
+    {
+      "id": 1777737268693,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "21:24:28",
+      "date": "2026-05-02",
+      "datetime": "2026-05-02 21:24:28",
+      "read": false
+    },
+    {
+      "id": 1777805385583,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "16:19:45",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:19:45",
+      "read": false
+    },
+    {
+      "id": 1777805449680,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "16:20:49",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:20:49",
+      "read": false
+    },
+    {
+      "id": 1777805680920,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "16:24:40",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:24:40",
+      "read": false
+    },
+    {
+      "id": 1777805683475,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "16:24:43",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:24:43",
+      "read": false
+    },
+    {
+      "id": 1777805786800,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "16:26:26",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:26:26",
+      "read": false
+    },
+    {
+      "id": 1777805911809,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "16:28:31",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:28:31",
+      "read": false
+    },
+    {
+      "id": 1777806028460,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "16:30:28",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:30:28",
+      "read": false
+    },
+    {
+      "id": 1777806077018,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "16:31:17",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 16:31:17",
+      "read": false
+    },
+    {
+      "id": 1777810617512,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "17:46:57",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 17:46:57",
+      "read": false
+    },
+    {
+      "id": 1777811000678,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "17:53:20",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 17:53:20",
+      "read": false
+    },
+    {
+      "id": 1777811052348,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "17:54:12",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 17:54:12",
+      "read": false
+    },
+    {
+      "id": 1777811136360,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "17:55:36",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 17:55:36",
+      "read": false
+    },
+    {
+      "id": 1777811636359,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:03:56",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:03:56",
+      "read": false
+    },
+    {
+      "id": 1777811672151,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:04:32",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:04:32",
+      "read": false
+    },
+    {
+      "id": 1777811694720,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "18:04:54",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:04:54",
+      "read": false
+    },
+    {
+      "id": 1777811735185,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:05:35",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:05:35",
+      "read": false
+    },
+    {
+      "id": 1777811775132,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "18:06:15",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:06:15",
+      "read": false
+    },
+    {
+      "id": 1777811798382,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:06:38",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:06:38",
+      "read": false
+    },
+    {
+      "id": 1777811864475,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "18:07:44",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:07:44",
+      "read": false
+    },
+    {
+      "id": 1777811977282,
+      "type": "praise",
+      "duration_sec": 0.0,
+      "note": "Child expressed praise \u2014 parent voice played",
+      "timestamp": "18:09:37",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:09:37",
+      "read": false
+    },
+    {
+      "id": 1777813516562,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:35:16",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:35:16",
+      "read": false
+    },
+    {
+      "id": 1777813577981,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "18:36:17",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:36:17",
+      "read": false
+    },
+    {
+      "id": 1777813639339,
+      "type": "bedtime",
+      "duration_sec": 0.0,
+      "note": "Child expressed bedtime \u2014 parent voice played",
+      "timestamp": "18:37:19",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:37:19",
+      "read": false
+    },
+    {
+      "id": 1777814218230,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "18:46:58",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:46:58",
+      "read": false
+    },
+    {
+      "id": 1777814300595,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:48:20",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:48:20",
+      "read": false
+    },
+    {
+      "id": 1777814378220,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:49:38",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:49:38",
+      "read": false
+    },
+    {
+      "id": 1777814548308,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "18:52:28",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:52:28",
+      "read": false
+    },
+    {
+      "id": 1777814621861,
+      "type": "praise",
+      "duration_sec": 0.0,
+      "note": "Child expressed praise \u2014 parent voice played",
+      "timestamp": "18:53:41",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 18:53:41",
+      "read": false
+    },
+    {
+      "id": 1777815085173,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "19:01:25",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:01:25",
+      "read": false
+    },
+    {
+      "id": 1777815140196,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "19:02:20",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:02:20",
+      "read": false
+    },
+    {
+      "id": 1777815232985,
+      "type": "scared",
+      "duration_sec": 0.0,
+      "note": "Child expressed scared \u2014 parent voice played",
+      "timestamp": "19:03:52",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:03:52",
+      "read": false
+    },
+    {
+      "id": 1777815412835,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "19:06:52",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:06:52",
+      "read": false
+    },
+    {
+      "id": 1777815503611,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "19:08:23",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:08:23",
+      "read": false
+    },
+    {
+      "id": 1777815522793,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "19:08:42",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:08:42",
+      "read": false
+    },
+    {
+      "id": 1777815542757,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "19:09:02",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:09:02",
+      "read": false
+    },
+    {
+      "id": 1777817484228,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "19:41:24",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:41:24",
+      "read": false
+    },
+    {
+      "id": 1777817639888,
+      "type": "scared",
+      "duration_sec": 0.0,
+      "note": "Child expressed scared \u2014 parent voice played",
+      "timestamp": "19:43:59",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:43:59",
+      "read": false
+    },
+    {
+      "id": 1777817692774,
+      "type": "cry",
+      "duration_sec": 0.5,
+      "note": "Baby crying detected (0s) \u2014 comfort message played",
+      "timestamp": "19:44:52",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:44:52",
+      "read": false
+    },
+    {
+      "id": 1777817709916,
+      "type": "scared",
+      "duration_sec": 0.0,
+      "note": "Child expressed scared \u2014 parent voice played",
+      "timestamp": "19:45:09",
+      "date": "2026-05-03",
+      "datetime": "2026-05-03 19:45:09",
+      "read": false
+    },
+    {
+      "id": 1778345570726,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:22:50",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:22:50",
+      "read": false
+    },
+    {
+      "id": 1778345762901,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:26:02",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:26:02",
+      "read": false
+    },
+    {
+      "id": 1778346271676,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:34:31",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:34:31",
+      "read": false
+    },
+    {
+      "id": 1778346364794,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:36:04",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:36:04",
+      "read": false
+    },
+    {
+      "id": 1778346981566,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:46:21",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:46:21",
+      "read": false
+    },
+    {
+      "id": 1778347039567,
+      "type": "cry",
+      "duration_sec": 21.0,
+      "note": "Baby crying detected (21s) \u2014 comfort message played",
+      "timestamp": "22:47:19",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:47:19",
+      "read": false
+    },
+    {
+      "id": 1778347390115,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:53:10",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:53:10",
+      "read": false
+    },
+    {
+      "id": 1778347536035,
+      "type": "scared",
+      "duration_sec": 0.0,
+      "note": "Child expressed scared \u2014 parent voice played",
+      "timestamp": "22:55:36",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:55:36",
+      "read": false
+    },
+    {
+      "id": 1778347580005,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "22:56:20",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 22:56:20",
+      "read": false
+    },
+    {
+      "id": 1778347997967,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "23:03:17",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 23:03:17",
+      "read": false
+    },
+    {
+      "id": 1778348060452,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "23:04:20",
+      "date": "2026-05-09",
+      "datetime": "2026-05-09 23:04:20",
+      "read": false
+    },
+    {
+      "id": 1778420404729,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "19:10:04",
+      "date": "2026-05-10",
+      "datetime": "2026-05-10 19:10:04",
+      "read": false
+    },
+    {
+      "id": 1778420938473,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "19:18:58",
+      "date": "2026-05-10",
+      "datetime": "2026-05-10 19:18:58",
+      "read": false
+    },
+    {
+      "id": 1778422399333,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "19:43:19",
+      "date": "2026-05-10",
+      "datetime": "2026-05-10 19:43:19",
+      "read": false
+    },
+    {
+      "id": 1778422513458,
+      "type": "lonely",
+      "duration_sec": 0.0,
+      "note": "Child expressed lonely \u2014 parent voice played",
+      "timestamp": "19:45:13",
+      "date": "2026-05-10",
+      "datetime": "2026-05-10 19:45:13",
+      "read": false
+    },
+    {
+      "id": 1778474808521,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "10:16:48",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 10:16:48",
+      "read": false
+    },
+    {
+      "id": 1778477080898,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "10:54:40",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 10:54:40",
+      "read": false
+    },
+    {
+      "id": 1778477126695,
+      "type": "cry",
+      "duration_sec": 12.0,
+      "note": "Baby crying detected (12s) \u2014 comfort message played",
+      "timestamp": "10:55:26",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 10:55:26",
+      "read": false
+    },
+    {
+      "id": 1778485201011,
+      "type": "cry",
+      "duration_sec": 6.0,
+      "note": "Baby crying detected (6s) \u2014 comfort message played",
+      "timestamp": "13:10:01",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 13:10:01",
+      "read": false
+    },
+    {
+      "id": 1778485256316,
+      "type": "cry",
+      "duration_sec": 18.0,
+      "note": "Baby crying detected (18s) \u2014 comfort message played",
+      "timestamp": "13:10:56",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 13:10:56",
+      "read": false
+    },
+    {
+      "id": 1778485380561,
+      "type": "cry",
+      "duration_sec": 6.0,
+      "note": "Baby crying detected (6s) \u2014 comfort message played",
+      "timestamp": "13:13:00",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 13:13:00",
+      "read": false
+    },
+    {
+      "id": 1778496438901,
+      "type": "cry",
+      "duration_sec": 6.0,
+      "note": "Baby crying detected (6s) \u2014 comfort message played",
+      "timestamp": "16:17:18",
+      "date": "2026-05-11",
+      "datetime": "2026-05-11 16:17:18",
+      "read": false
+    }
+  ],
+  "stats": {
+    "total_cries": 71,
+    "today_cries": 7,
+    "last_cry": "16:17:18"
+  }
+}

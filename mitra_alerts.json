@@ -1,0 +1,39 @@
+{
+  "alerts": [
+    {
+      "id": 1795533034263,
+      "type": "cry",
+      "duration_sec": 5.2,
+      "note": "Baby crying detected in bedroom \u2014 Parent soothing voice activated",
+      "timestamp": "20:40:34",
+      "date": "2026-11-24",
+      "datetime": "2026-11-24 20:40:34",
+      "read": true
+    },
+    {
+      "id": 1795533682181,
+      "type": "cry",
+      "duration_sec": 4.8,
+      "note": "Crying distress detected \u2014 Parent voice comfort activated",
+      "timestamp": "20:51:22",
+      "date": "2026-11-24",
+      "datetime": "2026-11-24 20:51:22",
+      "read": false
+    },
+    {
+      "id": 1795533989221,
+      "type": "sad",
+      "duration_sec": 0.0,
+      "note": "Child expressed sad \u2014 parent voice played",
+      "timestamp": "20:56:29",
+      "date": "2026-11-24",
+      "datetime": "2026-11-24 20:56:29",
+      "read": false
+    }
+  ],
+  "stats": {
+    "total_cries": 3,
+    "today_cries": 3,
+    "last_cry": "20:56:29"
+  }
+}

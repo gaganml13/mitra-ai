@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milo — Learning Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface2: #f0ede6;
+    --border: rgba(0,0,0,0.07);
+    --border2: rgba(0,0,0,0.11);
+    --text: #1a1814;
+    --muted: #6b6760;
+    --hint: #a8a49e;
+
+    --must: #d4380d;
+    --must-dim: rgba(212,56,13,0.08);
+    --should: #1d6fa4;
+    --should-dim: rgba(29,111,164,0.08);
+    --nice: #2d7d46;
+    --nice-dim: rgba(45,125,70,0.08);
+
+    --day1: #7c3aed;
+    --day1-dim: rgba(124,58,237,0.08);
+    --day2: #0369a1;
+    --day2-dim: rgba(3,105,161,0.08);
+    --day3: #065f46;
+    --day3-dim: rgba(6,95,70,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 48px 32px;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--text);
+  }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--must);
+    border: 1px solid var(--must);
+    padding: 3px 10px;
+    border-radius: 3px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  h1 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 10px;
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .must-dot { background: var(--must); }
+  .should-dot { background: var(--should); }
+  .nice-dot { background: var(--nice); }
+
+  /* section title */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--hint);
+    margin-bottom: 16px;
+    margin-top: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border2);
+  }
+
+  /* skill cards */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .skill-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .skill-top {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .skill-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .skill-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .priority-badge {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .must-badge { background: var(--must-dim); color: var(--must); border: 1px solid rgba(212,56,13,0.2); }
+  .should-badge { background: var(--should-dim); color: var(--should); border: 1px solid rgba(29,111,164,0.2); }
+  .nice-badge { background: var(--nice-dim); color: var(--nice); border: 1px solid rgba(45,125,70,0.2); }
+
+  .skill-why { color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+  .skill-time {
+    font-size: 10px;
+    color: var(--hint);
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .skill-time strong { color: var(--text); font-weight: 500; }
+
+  .skill-bottom { padding: 14px 20px; background: var(--surface2); }
+  .learn-label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hint);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .resource-list { list-style: none; }
+  .resource-list li {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .resource-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--hint);
+    font-size: 10px;
+  }
+  .resource-list li a {
+    color: var(--should);
+    text-decoration: none;
+  }
+  .resource-list li a:hover { text-decoration: underline; }
+  .resource-list li span.free {
+    display: inline-block;
+    font-size: 8px;
+    background: var(--nice-dim);
+    color: var(--nice);
+    border-radius: 2px;
+    padding: 1px 5px;
+    margin-left: 4px;
+    vertical-align: middle;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .resource-list li span.paid {
+    display: inline-block;
+    font-size: 8px;
+    background: var(--must-dim);
+    color: var(--must);
+    border-radius: 2px;
+    padding: 1px 5px;
+    margin-left: 4px;
+    vertical-align: middle;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* honest table */
+  .honest-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .honest-card {
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+  }
+  .honest-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .learn-it .honest-label { color: var(--must); }
+  .copy-it .honest-label { color: var(--should); }
+  .skip-it .honest-label { color: var(--nice); }
+
+  .honest-items { list-style: none; }
+  .honest-items li {
+    font-size: 11.5px;
+    color: var(--muted);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .honest-items li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--hint);
+  }
+
+  /* order of learning */
+  .order-list { list-style: none; counter-reset: order; }
+  .order-item {
+    counter-increment: order;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    align-items: start;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .order-item:last-child { border-bottom: none; }
+  .order-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--surface2);
+    line-height: 1;
+    user-select: none;
+  }
+  .order-content {}
+  .order-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .order-desc { color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+  .order-time {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--hint);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  /* daily plan strip */
+  .daily-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .day-strip-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .strip-day {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .strip-topic {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .strip-focus {
+    font-size: 9px;
+    margin-top: 6px;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  .strip-py { background: var(--day1-dim); color: var(--day1); }
+  .strip-audio { background: var(--day2-dim); color: var(--day2); }
+  .strip-api { background: var(--day3-dim); color: var(--day3); }
+  .strip-rest { background: var(--nice-dim); color: var(--nice); }
+
+  /* footer */
+  .footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 2px solid var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--hint);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="tag">Software Learning Roadmap</div>
+  <h1>What to learn <em>and</em><br>where to start</h1>
+  <p class="subtitle">An honest breakdown of exactly what skills you need for Milo — prioritised by how much of the project depends on each one, with the fastest learning path for each.</p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot must-dot"></div> Must learn — project won't work without this</div>
+    <div class="legend-item"><div class="legend-dot should-dot"></div> Should learn — makes your life much easier</div>
+    <div class="legend-item"><div class="legend-dot nice-dot"></div> Nice to know — can copy-paste for the hackathon</div>
+  </div>
+</div>
+
+<!-- Honest truth -->
+<div class="section-title">The honest truth first</div>
+<div class="honest-grid">
+  <div class="honest-card learn-it">
+    <div class="honest-label">Actually learn this</div>
+    <ul class="honest-items">
+      <li>Python basics — variables, functions, loops, imports</li>
+      <li>How to read and write to files in Python</li>
+      <li>Python threading — running two things at once</li>
+      <li>How APIs work — sending a request, reading a response</li>
+      <li>How audio capture works in Python (PyAudio basics)</li>
+      <li>Basic React — components, useState, useEffect</li>
+    </ul>
+  </div>
+  <div class="honest-card copy-it">
+    <div class="honest-label">Copy-paste is fine</div>
+    <ul class="honest-items">
+      <li>Whisper integration — 10 lines, same every project</li>
+      <li>YAMNet classifier setup — Google gives you the code</li>
+      <li>Firebase SDK setup — docs walk you through it exactly</li>
+      <li>FCM push notification code — copy from Firebase docs</li>
+      <li>pyttsx3 TTS — 5 lines, never changes</li>
+      <li>Recharts graph component — copy from examples</li>
+    </ul>
+  </div>
+  <div class="honest-card skip-it">
+    <div class="honest-label">Skip for now</div>
+    <ul class="honest-items">
+      <li>Machine learning theory — you're using pre-built models</li>
+      <li>Docker / deployment — localhost is fine for hackathon</li>
+      <li>Voice cloning (ElevenLabs etc.) — clips work better anyway</li>
+      <li>React Native — mobile web is enough for demo</li>
+      <li>SQL / databases — Firebase JSON is sufficient</li>
+      <li>TypeScript — plain JavaScript is fine for now</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Core skills -->
+<div class="section-title">Skills you must learn — in detail</div>
+<div class="skills-grid">
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">Python fundamentals</div>
+        <div class="priority-badge must-badge">Must learn</div>
+      </div>
+      <div class="skill-why">Everything — the voice loop, cry detection, mood analysis, API calls, clip playback — is written in Python. This is the single most important thing to learn. You don't need to be an expert, but you need to be comfortable reading and writing Python code without Googling every line.</div>
+      <div class="skill-time">Time needed: <strong>4–5 days of focused practice</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://www.youtube.com/watch?v=eWRfhZUzrAc" target="_blank">Python Full Course — freeCodeCamp (YouTube)</a> <span class="free">free</span></li>
+        <li><a href="https://cs50.harvard.edu/python/" target="_blank">CS50P — Harvard's Python course</a> <span class="free">free</span></li>
+        <li><a href="https://www.learnpython.org" target="_blank">learnpython.org — interactive exercises</a> <span class="free">free</span></li>
+        <li>Focus only on: variables, functions, loops, lists, dicts, imports, files</li>
+        <li>Skip: classes, decorators, generators — not needed for this project</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">Python threading</div>
+        <div class="priority-badge must-badge">Must learn</div>
+      </div>
+      <div class="skill-why">Cry detection and conversation must run at the same time. Without threading knowledge you'll write code where the toy stops listening for cries while it's talking — a dangerous bug. You need to understand how to start a background thread and share data between threads safely.</div>
+      <div class="skill-time">Time needed: <strong>1 day once you know Python basics</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://www.youtube.com/watch?v=IEEhzQoKtQU" target="_blank">Python Threading — Corey Schafer (YouTube)</a> <span class="free">free</span></li>
+        <li><a href="https://realpython.com/intro-to-python-threading/" target="_blank">Real Python — threading intro</a> <span class="free">free</span></li>
+        <li>Key concepts: threading.Thread, daemon threads, threading.Event</li>
+        <li>Only need ~30 min to learn enough for this project</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">APIs and HTTP requests</div>
+        <div class="priority-badge must-badge">Must learn</div>
+      </div>
+      <div class="skill-why">Groq (the LLM) and Firebase are both APIs — your Python code sends them a message over the internet and reads the reply. You need to understand what an API key is, how to use the requests library, and how to read JSON responses. This is also how every professional software product works, so this is a career skill too.</div>
+      <div class="skill-time">Time needed: <strong>1–2 days</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://www.youtube.com/watch?v=tb8gHvYlCFs" target="_blank">APIs for Beginners — freeCodeCamp (YouTube)</a> <span class="free">free</span></li>
+        <li><a href="https://realpython.com/api-integration-in-python/" target="_blank">Real Python — API integration guide</a> <span class="free">free</span></li>
+        <li>Practice: call the Groq API from a Python script, print the reply</li>
+        <li>Key library: <strong>requests</strong> (pip install requests)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">Audio in Python</div>
+        <div class="priority-badge must-badge">Must learn</div>
+      </div>
+      <div class="skill-why">PyAudio captures from the mic. pydub or pygame plays audio clips. You need to understand audio streams, sample rates, and how to record a fixed-length chunk of audio. This is specific to Milo and not something you'll find in a general Python course — but it's not hard once you understand the concept.</div>
+      <div class="skill-time">Time needed: <strong>1–2 days of tinkering</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://www.youtube.com/watch?v=AShHJdSIxkY" target="_blank">PyAudio Tutorial — Tech With Tim (YouTube)</a> <span class="free">free</span></li>
+        <li><a href="https://people.csail.mit.edu/hubert/pyaudio/docs/" target="_blank">PyAudio official docs</a> <span class="free">free</span></li>
+        <li>Practice goal: record 5 seconds of audio and save as a .wav file</li>
+        <li>Then: play a .mp3 file from Python using pygame.mixer</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">React basics</div>
+        <div class="priority-badge should-badge">Should learn</div>
+      </div>
+      <div class="skill-why">The parent app is built in React. You need to understand components, how useState manages what's shown on screen, and how useEffect fetches data from Firebase when the page loads. You don't need advanced React — just enough to build 3 simple screens with data coming in from Firebase.</div>
+      <div class="skill-time">Time needed: <strong>3–4 days</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://react.dev/learn" target="_blank">Official React Docs — react.dev/learn</a> <span class="free">free</span></li>
+        <li><a href="https://www.youtube.com/watch?v=SqcY0GlETPk" target="_blank">React in 1 Hour — Programming with Mosh (YouTube)</a> <span class="free">free</span></li>
+        <li>Focus on: JSX, components, useState, useEffect, fetch/axios</li>
+        <li>Skip: Redux, Context API, Next.js — overkill for this project</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">Firebase (RTDB + FCM)</div>
+        <div class="priority-badge should-badge">Should learn</div>
+      </div>
+      <div class="skill-why">Firebase stores cry events and conversation logs in real-time, and FCM sends push alerts to the parent's phone. The good news: Firebase has the best beginner documentation of any tool in this stack. You'll spend more time reading docs than actually learning concepts — it's that straightforward.</div>
+      <div class="skill-time">Time needed: <strong>1 day</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://firebase.google.com/docs/database/web/start" target="_blank">Firebase RTDB quickstart — official docs</a> <span class="free">free</span></li>
+        <li><a href="https://www.youtube.com/watch?v=9kRgVxULbag" target="_blank">Firebase for beginners — Fireship (YouTube)</a> <span class="free">free</span></li>
+        <li>Practice: write a value from Python, read it in React. That's 80% of what you need.</li>
+        <li>FCM docs are copy-paste friendly — follow the quickstart exactly</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">Prompt engineering</div>
+        <div class="priority-badge must-badge">Must learn</div>
+      </div>
+      <div class="skill-why">The system prompt IS Milo's personality. A bad prompt gives you a boring, robotic toy. A great prompt gives you a toy that tells funny stories, adapts to mood, and makes kids laugh. This is the highest-leverage skill in the whole project and takes the least time to learn — but needs the most creative thinking and testing.</div>
+      <div class="skill-time">Time needed: <strong>2–3 days of reading + experimenting</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://www.promptingguide.ai" target="_blank">promptingguide.ai — free comprehensive guide</a> <span class="free">free</span></li>
+        <li><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank">Anthropic prompt engineering docs</a> <span class="free">free</span></li>
+        <li>Practice: open ChatGPT or Groq playground, write a system prompt for a child storyteller</li>
+        <li>Test it by asking: "tell me about dinosaurs" and "I'm scared of the dark"</li>
+        <li>Iterate until both answers feel warm, funny, and age-appropriate</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div class="skill-top">
+      <div class="skill-header">
+        <div class="skill-name">librosa (mood analysis)</div>
+        <div class="priority-badge should-badge">Should learn</div>
+      </div>
+      <div class="skill-why">librosa extracts audio features for mood detection. You don't need to understand the math behind pitch analysis — you just need to know which 3 functions to call and how to interpret the numbers they return. This is the most "copy-and-understand" skill on the list.</div>
+      <div class="skill-time">Time needed: <strong>half a day</strong></div>
+    </div>
+    <div class="skill-bottom">
+      <div class="learn-label">Where to learn</div>
+      <ul class="resource-list">
+        <li><a href="https://librosa.org/doc/latest/tutorial.html" target="_blank">librosa official tutorial</a> <span class="free">free</span></li>
+        <li><a href="https://www.youtube.com/watch?v=MhOdbtPhbLU" target="_blank">Audio analysis with librosa — YouTube</a> <span class="free">free</span></li>
+        <li>Only need 3 functions: librosa.load(), librosa.feature.rms(), librosa.beat.tempo()</li>
+        <li>Goal: load a .wav file and print its average pitch and tempo</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- Order of learning -->
+<div class="section-title">Exact order to learn everything</div>
+<ul class="order-list">
+  <div class="order-item">
+    <div class="order-num">01</div>
+    <div class="order-content">
+      <div class="order-title">Python basics — variables, functions, loops, files</div>
+      <div class="order-desc">Start here no matter what. Everything else builds on this. Use freeCodeCamp's Python full course on YouTube — watch at 1.5x speed, pause and code along. Don't just watch. By the end you should be able to write a script that reads a text file and prints every line. That's the bar.</div>
+      <div class="order-time">Days 1–4 of your 15 days</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">02</div>
+    <div class="order-content">
+      <div class="order-title">APIs + the requests library</div>
+      <div class="order-desc">On Day 5, sign up for a free Groq API key and write a Python script that sends "tell me a joke for a 5 year old" and prints the answer. This single exercise teaches you APIs, JSON, and environment variables (for keeping keys safe) all at once. Takes 2–3 hours max.</div>
+      <div class="order-time">Day 5</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">03</div>
+    <div class="order-content">
+      <div class="order-title">Audio capture + playback in Python</div>
+      <div class="order-desc">Install PyAudio and write a script that records 5 seconds from your mic and saves it. Then write a second script that plays a .mp3 file. Once both work, combine them. This is the physical loop of Milo — mic in, speaker out — and you need to feel comfortable with it before adding any AI on top.</div>
+      <div class="order-time">Days 6–7</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">04</div>
+    <div class="order-content">
+      <div class="order-title">Whisper STT + pyttsx3 TTS</div>
+      <div class="order-desc">Now combine: record audio → run Whisper on it → get text → send to Groq → get reply → speak it with pyttsx3. This is your first working version of Milo. It's 40–50 lines of Python and when it works for the first time it will feel like magic. This is your Day 7 or 8 milestone.</div>
+      <div class="order-time">Day 7–8</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">05</div>
+    <div class="order-content">
+      <div class="order-title">Python threading</div>
+      <div class="order-desc">Watch the Corey Schafer threading video. Then take your working voice loop and wrap it in a Thread. Start a second thread that just prints "listening for cry..." every 2 seconds. Make sure both run simultaneously without blocking each other. Once that works, you're ready to add YAMNet.</div>
+      <div class="order-time">Day 9</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">06</div>
+    <div class="order-content">
+      <div class="order-title">Prompt engineering</div>
+      <div class="order-desc">Spend a full day in the Groq playground (no code needed) writing and testing your system prompt. Make Milo funny. Make it tell a story. Make it respond differently to "I'm sad" vs "I'm excited!" This day pays off more than any other single day in the 15. The best prompt = the best demo.</div>
+      <div class="order-time">Day 10</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">07</div>
+    <div class="order-content">
+      <div class="order-title">librosa + YAMNet</div>
+      <div class="order-desc">Now add the two classifiers. librosa for mood (run it on the audio before sending to Whisper), YAMNet for cry detection (run it in a background thread). Both are copy-paste-and-understand jobs — the libraries do the hard work. Your job is just wiring them into the system you already built.</div>
+      <div class="order-time">Days 11–12</div>
+    </div>
+  </div>
+  <div class="order-item">
+    <div class="order-num">08</div>
+    <div class="order-content">
+      <div class="order-title">Firebase + React parent app</div>
+      <div class="order-desc">Last piece. Set up Firebase, write cry events from Python to the database, then build 3 React screens that read from it. If someone on your team already knows React, let them own this entirely while you polish the Python side. Division of labour here is critical.</div>
+      <div class="order-time">Days 13–15</div>
+    </div>
+  </div>
+</ul>
+
+<!-- Daily learning strip -->
+<div class="section-title">Your learning schedule — first 7 days</div>
+<div class="daily-strip">
+  <div class="day-strip-card">
+    <div class="strip-day">Day 1</div>
+    <div class="strip-topic">Install Python, VS Code, pip. Write hello world. Variables + print.</div>
+    <div class="strip-focus strip-py">Python</div>
+  </div>
+  <div class="day-strip-card">
+    <div class="strip-day">Day 2</div>
+    <div class="strip-topic">Functions, loops, lists, dicts. Write a script that reads a .txt file.</div>
+    <div class="strip-focus strip-py">Python</div>
+  </div>
+  <div class="day-strip-card">
+    <div class="strip-day">Day 3</div>
+    <div class="strip-topic">Install PyAudio. Record mic audio. Save as .wav. Play a .mp3 with pygame.</div>
+    <div class="strip-focus strip-audio">Audio</div>
+  </div>
+  <div class="day-strip-card">
+    <div class="strip-day">Day 4</div>
+    <div class="strip-topic">Install Whisper. Transcribe your .wav file. Print the text.</div>
+    <div class="strip-focus strip-audio">Whisper</div>
+  </div>
+  <div class="day-strip-card">
+    <div class="strip-day">Day 5</div>
+    <div class="strip-topic">Get Groq API key. Send a message, print the reply. Add pyttsx3 TTS.</div>
+    <div class="strip-focus strip-api">Groq API</div>
+  </div>
+  <div class="day-strip-card">
+    <div class="strip-day">Day 6</div>
+    <div class="strip-topic">Combine everything: mic → Whisper → Groq → pyttsx3. First full loop!</div>
+    <div class="strip-focus strip-api">Full loop</div>
+  </div>
+  <div class="day-strip-card">
+    <div class="strip-day">Day 7</div>
+    <div class="strip-topic">Write and test your system prompt in Groq playground. Make Milo funny.</div>
+    <div class="strip-focus strip-rest">Prompt</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-brand">MILO</div>
+  <div>learning roadmap · software track</div>
+  <div>8 skills · 15 days · 1 working prototype</div>
+</div>
+
+</body>
+</html>

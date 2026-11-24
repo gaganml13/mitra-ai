@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milo — Hackathon Day Strategy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6f0;
+    --muted: #7a7890;
+    --hint: #3a3850;
+
+    --teal: #2dd4bf;   --teal-dim: rgba(45,212,191,0.1);
+    --purple: #a78bfa; --purple-dim: rgba(167,139,250,0.1);
+    --amber: #fbbf24;  --amber-dim: rgba(251,191,36,0.1);
+    --coral: #fb7185;  --coral-dim: rgba(251,113,133,0.1);
+    --green: #4ade80;  --green-dim: rgba(74,222,128,0.1);
+    --blue: #60a5fa;   --blue-dim: rgba(96,165,250,0.1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 48px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* header */
+  .header { margin-bottom: 52px; padding-bottom: 28px; border-bottom: 1px solid var(--border2); }
+  .tag {
+    display: inline-block; font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--amber);
+    background: var(--amber-dim); border: 1px solid rgba(251,191,36,0.25);
+    padding: 4px 10px; border-radius: 4px; margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif; font-size: 46px; font-weight: 800;
+    line-height: 1.0; letter-spacing: -0.03em; color: #fff; margin-bottom: 10px;
+  }
+  h1 span { color: var(--amber); }
+  .subtitle { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 17px; color: var(--muted); }
+
+  /* section label */
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 18px; margin-top: 44px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+  /* the big rule card */
+  .big-rule {
+    background: var(--surface);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 14px;
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 8px;
+  }
+  .rule-col { }
+  .rule-col-title {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border2);
+  }
+  .before .rule-col-title { color: var(--teal); }
+  .after  .rule-col-title { color: var(--amber); }
+  .rule-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+  }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-dot {
+    width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+  }
+  .before .rule-dot { background: var(--teal); }
+  .after  .rule-dot { background: var(--amber); }
+  .rule-item span { color: var(--text); }
+
+  /* timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl-block {
+    display: grid;
+    grid-template-columns: 110px 1px 1fr;
+    gap: 0 20px;
+    position: relative;
+  }
+  .tl-time {
+    text-align: right;
+    padding: 20px 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .tl-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .tl-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 24px; z-index: 1;
+  }
+  .tl-vline {
+    flex: 1; width: 1px; background: var(--border2);
+  }
+  .tl-block:last-child .tl-vline { background: transparent; }
+
+  .tl-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+  .tl-card-header {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .tl-badge {
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 700; padding: 3px 8px; border-radius: 4px;
+  }
+  .tl-card-title {
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: #fff;
+  }
+  .tl-build-label {
+    margin-left: auto; font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .live-tag { color: var(--amber); }
+  .prep-tag { color: var(--teal); }
+
+  .tl-tasks {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+  .tl-task {
+    padding: 12px 18px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+  }
+  .tl-task:nth-child(even) { border-right: none; }
+  .tl-task:nth-last-child(-n+2) { border-bottom: none; }
+  .tl-task-label {
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 600; margin-bottom: 4px;
+  }
+  .tl-task-text { color: var(--muted); line-height: 1.5; }
+  .tl-task-text strong { color: var(--text); font-weight: 500; }
+
+  .tl-highlight {
+    padding: 12px 18px;
+    font-size: 11.5px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .tl-highlight-icon {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 11px;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .tl-highlight-text { color: var(--muted); }
+  .tl-highlight-text strong { color: var(--text); font-weight: 500; }
+
+  /* hour colours */
+  .h0  { color: var(--teal);   } .h0  .tl-dot { background: var(--teal);   } .h0  .tl-badge { background: var(--teal-dim);   color: var(--teal);   border: 1px solid rgba(45,212,191,0.2);  } .h0  .tl-build-label.live-tag,.h0  .tl-build-label.prep-tag { color: var(--teal); }
+  .h8  { color: var(--purple); } .h8  .tl-dot { background: var(--purple); } .h8  .tl-badge { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); } .h8  .tl-build-label { color: var(--purple); }
+  .h14 { color: var(--amber);  } .h14 .tl-dot { background: var(--amber);  } .h14 .tl-badge { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(251,191,36,0.2);  } .h14 .tl-build-label { color: var(--amber);  }
+  .h20 { color: var(--coral);  } .h20 .tl-dot { background: var(--coral);  } .h20 .tl-badge { background: var(--coral-dim);  color: var(--coral);  border: 1px solid rgba(251,113,133,0.2); } .h20 .tl-build-label { color: var(--coral);  }
+  .h22 { color: var(--green);  } .h22 .tl-dot { background: var(--green);  } .h22 .tl-badge { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(74,222,128,0.2);  } .h22 .tl-build-label { color: var(--green);  }
+
+  /* what pre-work enables */
+  .enables-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+  }
+  .en-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 18px;
+  }
+  .en-num {
+    font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+    line-height: 1; margin-bottom: 8px;
+  }
+  .en-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .en-text { color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+
+  /* judge moment */
+  .moment-card {
+    background: var(--surface);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 14px;
+    padding: 28px 32px;
+  }
+  .moment-title {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+    color: var(--amber); margin-bottom: 6px;
+  }
+  .moment-sub { color: var(--muted); font-size: 12px; margin-bottom: 24px; }
+  .moment-steps { display: flex; flex-direction: column; gap: 0; }
+  .moment-step {
+    display: flex; gap: 16px; padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .moment-step:last-child { border-bottom: none; }
+  .ms-num {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
+    color: var(--hint); flex-shrink: 0; width: 32px; line-height: 1;
+    margin-top: 2px;
+  }
+  .ms-content { }
+  .ms-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .ms-text { color: var(--muted); font-size: 12px; line-height: 1.6; }
+  .ms-text strong { color: var(--amber); font-weight: 500; }
+
+  /* footer */
+  .footer {
+    margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--hint); font-size: 10px; letter-spacing: 0.08em;
+  }
+  .footer-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; color: var(--amber); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="tag">Hackathon Day Plan</div>
+  <h1>24 HOURS<span>.</span></h1>
+  <p class="subtitle">What you build live, what you polish, and how you win the room</p>
+</div>
+
+<!-- The golden rule -->
+<div class="section-title">The one rule that makes everything make sense</div>
+<div class="big-rule">
+  <div class="rule-col before">
+    <div class="rule-col-title">Pre-work (15 days) — invisible to judges</div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Voice loop</span> — mic → Whisper → Groq → TTS pipeline</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>YAMNet cry classifier</span> — trained, tested, threshold tuned</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>librosa mood engine</span> — pitch/pace/volume → 4 mood buckets</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Firebase project</span> — DB + FCM push set up and tested</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>React app shell</span> — all 3 screens built, placeholder data</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Clip system</span> — tag categories, playback logic, file structure</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>System prompt</span> — persona, humor rules, mood injection</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Toy shell</span> — mic hidden, speaker hidden, packaged</div></div>
+  </div>
+  <div class="rule-col after">
+    <div class="rule-col-title">Hackathon day — what judges watch you do</div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Record parent voice live</span> — in front of judges, real emotion</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Wire all modules together</span> — first time as one live system</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Connect app to live toy data</span> — real events flowing in real time</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Tune cry sensitivity</span> — test and adjust threshold live</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Add one surprise feature</span> — something small, built in 2 hrs</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Build the pitch narrative</span> — slides, story, demo script</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Stress test the full demo</span> — break it before judges do</div></div>
+    <div class="rule-item"><div class="rule-dot"></div><div><span>Present</span> — rested, rehearsed, confident</div></div>
+  </div>
+</div>
+
+<!-- Timeline -->
+<div class="section-title">Hour-by-hour hackathon schedule</div>
+<div class="timeline">
+
+  <!-- Hr 0-8 -->
+  <div class="tl-block h0">
+    <div class="tl-time">Hr 0 – 8<br><span style="font-size:10px;color:var(--muted);font-weight:400">Integration</span></div>
+    <div class="tl-line"><div class="tl-dot"></div><div class="tl-vline"></div></div>
+    <div class="tl-card">
+      <div class="tl-card-header">
+        <div class="tl-badge">Phase 1</div>
+        <div class="tl-card-title">Set up, connect everything, first live system test</div>
+        <div class="tl-build-label prep-tag">INTEGRATION SPRINT</div>
+      </div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--teal)">Hr 0–1 · Unpack</div>
+          <div class="tl-task-text">Set up laptop, mic, speaker, toy shell at your table. Boot everything. Confirm internet via hotspot. <strong>Don't depend on venue WiFi.</strong></div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--teal)">Hr 1–3 · Wire modules</div>
+          <div class="tl-task-text">Connect all pre-built modules into one running process for the first time. Cry detector + mood engine + voice loop + clip player all running together.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--teal)">Hr 3–5 · Record parent voice</div>
+          <div class="tl-task-text"><strong>Do this early.</strong> One teammate acts as the "parent." Record all 20 clips live — comfort, praise, bedtime, greeting. Load into the clip system. Test playback.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--teal)">Hr 5–8 · Full loop test</div>
+          <div class="tl-task-text">Run the entire demo script end-to-end. Child asks a question → toy replies in storytelling mode. Cry audio plays → parent gets push notification. Fix whatever breaks.</div>
+        </div>
+      </div>
+      <div class="tl-highlight" style="border-top:1px solid var(--border); background:var(--teal-dim)">
+        <div class="tl-highlight-icon" style="color:var(--teal)">→</div>
+        <div class="tl-highlight-text">Hr 8 checkpoint: <strong>every feature works end-to-end.</strong> If something is broken beyond 30 min of fixing, cut it from the demo. A clean 3-feature demo beats a buggy 4-feature one.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hr 8-14 -->
+  <div class="tl-block h8">
+    <div class="tl-time">Hr 8 – 14<br><span style="font-size:10px;color:var(--muted);font-weight:400">Build live</span></div>
+    <div class="tl-line"><div class="tl-dot"></div><div class="tl-vline"></div></div>
+    <div class="tl-card">
+      <div class="tl-card-header">
+        <div class="tl-badge">Phase 2</div>
+        <div class="tl-card-title">Connect parent app to live data + build surprise feature</div>
+        <div class="tl-build-label live-tag">BUILT LIVE AT HACKATHON</div>
+      </div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--purple)">Hr 8–10 · Live data pipeline</div>
+          <div class="tl-task-text">Connect React parent app to Firebase. Real cry events and mood logs should appear on the dashboard as the toy runs. <strong>Judges watch data appear in real time.</strong></div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--purple)">Hr 10–12 · Daily report card</div>
+          <div class="tl-task-text">Build the AI-generated daily summary: call Groq with today's event log → get one paragraph like "Priya seemed excited today, asked about space 4 times, was comforted once at 2pm."</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--purple)">Hr 12–14 · Surprise feature</div>
+          <div class="tl-task-text"><strong>Milo's memory.</strong> Toy remembers the last 3 things the child talked about. Next conversation starts with "Hey! Last time you asked about dinosaurs — want to hear something cool?" 2 hours, huge impact.</div>
+        </div>
+      </div>
+      <div class="tl-highlight" style="border-top:1px solid var(--border); background:var(--purple-dim)">
+        <div class="tl-highlight-icon" style="color:var(--purple)">→</div>
+        <div class="tl-highlight-text">Why this is the "built live" phase: the daily report card and memory feature are <strong>new code written at the hackathon.</strong> Judges can see git commits. This is your proof you built something on the day.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hr 14-20 -->
+  <div class="tl-block h14">
+    <div class="tl-time">Hr 14 – 20<br><span style="font-size:10px;color:var(--muted);font-weight:400">Polish</span></div>
+    <div class="tl-line"><div class="tl-dot"></div><div class="tl-vline"></div></div>
+    <div class="tl-card">
+      <div class="tl-card-header">
+        <div class="tl-badge">Phase 3</div>
+        <div class="tl-card-title">Polish, stress test, build pitch deck and demo script</div>
+        <div class="tl-build-label live-tag">DEMO PREP</div>
+      </div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--amber)">Hr 14–16 · Break it on purpose</div>
+          <div class="tl-task-text">Ask the toy unexpected questions. Try edge cases. Yell at it. Cry loudly. Ask two questions at once. <strong>Find every failure mode before judges do.</strong> Fix the critical ones only.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--amber)">Hr 16–18 · Pitch deck</div>
+          <div class="tl-task-text">5 slides max: problem → Milo solution → 4 features → live demo → future roadmap (Model 1, 2, 3). One person writes this while others are testing. Do not spend more than 2 hours on slides.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--amber)">Hr 18–19 · Demo script</div>
+          <div class="tl-task-text">Write the exact 90-second demo flow. Every word. Who speaks. When the toy is touched. When the phone is shown. When the cry is triggered. Rehearse it twice out loud as a team.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--amber)">Hr 19–20 · Code freeze</div>
+          <div class="tl-task-text"><strong>No new code after hour 20.</strong> Commit everything. Tag the release. Back up to a USB drive. From this point, you are only rehearsing and resting — never coding.</div>
+        </div>
+      </div>
+      <div class="tl-highlight" style="border-top:1px solid var(--border); background:var(--amber-dim)">
+        <div class="tl-highlight-icon" style="color:var(--amber)">→</div>
+        <div class="tl-highlight-text"><strong>Code freeze at hour 20 is non-negotiable.</strong> Every team that loses a hackathon was still coding at hour 23. The last 4 hours are for sleep and rehearsal, not features.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hr 20-22 -->
+  <div class="tl-block h20">
+    <div class="tl-time">Hr 20 – 22<br><span style="font-size:10px;color:var(--muted);font-weight:400">Sleep</span></div>
+    <div class="tl-line"><div class="tl-dot"></div><div class="tl-vline"></div></div>
+    <div class="tl-card">
+      <div class="tl-card-header">
+        <div class="tl-badge">Phase 4</div>
+        <div class="tl-card-title">Sleep in shifts — one person monitors the system</div>
+        <div class="tl-build-label" style="color:var(--coral)">REST</div>
+      </div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--coral)">Person A + B sleep</div>
+          <div class="tl-task-text">2 hours of actual sleep. Set an alarm. You will present 10× better rested than exhausted. This is not optional — it is strategy.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--coral)">Person C monitors</div>
+          <div class="tl-task-text">Keep the toy running. Make sure Firebase is live. Make sure no process has crashed. <strong>Do not write new code.</strong> Just watch and keep it alive.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hr 22-24 -->
+  <div class="tl-block h22">
+    <div class="tl-time">Hr 22 – 24<br><span style="font-size:10px;color:var(--muted);font-weight:400">Present</span></div>
+    <div class="tl-line"><div class="tl-dot"></div><div class="tl-vline"></div></div>
+    <div class="tl-card">
+      <div class="tl-card-header">
+        <div class="tl-badge">Phase 5</div>
+        <div class="tl-card-title">Final rehearsal and presentation</div>
+        <div class="tl-build-label" style="color:var(--green)">WIN</div>
+      </div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--green)">Hr 22 · Wake + rehearse</div>
+          <div class="tl-task-text">Everyone awake. Run the full demo script one more time. Confirm toy is working. Confirm phone notifications fire. Confirm parent app opens on judge's phone via QR code.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-label" style="color:var(--green)">Hr 23–24 · Present</div>
+          <div class="tl-task-text">Toy on table. Teammate plays the child. One person speaks. One person manages the phone. <strong>Let the toy do the talking — your job is to narrate what judges are feeling.</strong></div>
+        </div>
+      </div>
+      <div class="tl-highlight" style="border-top:1px solid var(--border); background:var(--green-dim)">
+        <div class="tl-highlight-icon" style="color:var(--green)">→</div>
+        <div class="tl-highlight-text">The presentation is not a feature walkthrough. It is a <strong>story about a child who misses their parent</strong> — and how Milo solved that. Every judge has a child, or was one. Start there.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- What pre-work actually enables -->
+<div class="section-title">What the pre-work actually buys you</div>
+<div class="enables-grid">
+  <div class="en-card">
+    <div class="en-num" style="color:var(--teal)">8hrs</div>
+    <div class="en-title">Saved on debugging infrastructure</div>
+    <div class="en-text">Teams without pre-work spend the first 8 hours fighting dependencies, broken APIs, and audio drivers. You spend it integrating a working system. You're already ahead by lunchtime.</div>
+  </div>
+  <div class="en-card">
+    <div class="en-num" style="color:var(--purple)">2hrs</div>
+    <div class="en-title">Spent building something brand new</div>
+    <div class="en-text">The memory feature and the AI daily report card are genuinely new code written at the hackathon. They show up in your git log. Judges who check commits see real hackathon-day work.</div>
+  </div>
+  <div class="en-card">
+    <div class="en-num" style="color:var(--amber)">4hrs</div>
+    <div class="en-title">For pitch, script, and sleep</div>
+    <div class="en-text">Most teams skip this entirely. A team that sleeps, rehearses a tight demo, and walks in with a clear story beats a team with more features and zero presentation polish every single time.</div>
+  </div>
+  <div class="en-card">
+    <div class="en-num" style="color:var(--coral)">0</div>
+    <div class="en-title">Risk of core demo breaking</div>
+    <div class="en-text">The four core features are battle-tested from 15 days of prep. The only new code at the hackathon is additive — if it breaks, you cut it. The core never wobbles.</div>
+  </div>
+  <div class="en-card">
+    <div class="en-num" style="color:var(--green)">1</div>
+    <div class="en-title">Surprise that makes judges remember you</div>
+    <div class="en-text">"Milo remembers." When the toy opens with "Hey, last time you asked me about dinosaurs..." — that's a feature no judge will forget. It takes 2 hours and only exists because you had time to build it.</div>
+  </div>
+  <div class="en-card">
+    <div class="en-num" style="color:var(--blue)">∞</div>
+    <div class="en-title">Confidence walking into the room</div>
+    <div class="en-text">You know exactly what Milo does, how it fails, and how to recover. You've rehearsed the demo. You've slept. That confidence is visible to judges — and it is itself a signal of a strong team.</div>
+  </div>
+</div>
+
+<!-- The magic demo moment -->
+<div class="section-title">The demo moment that wins the room</div>
+<div class="moment-card">
+  <div class="moment-title">The 90-second Milo demo script</div>
+  <div class="moment-sub">Rehearse this exact sequence. Every word matters. Every pause is intentional.</div>
+  <div class="moment-steps">
+    <div class="moment-step">
+      <div class="ms-num">01</div>
+      <div class="ms-content">
+        <div class="ms-title">Set the scene (15 seconds)</div>
+        <div class="ms-text">Presenter says: <strong>"It's 3pm. Both parents are at work. Their 5-year-old is home with a caretaker. This is Milo."</strong> Place the toy on the table. Say nothing else. Let the silence build.</div>
+      </div>
+    </div>
+    <div class="moment-step">
+      <div class="ms-num">02</div>
+      <div class="ms-content">
+        <div class="ms-title">The child asks (20 seconds)</div>
+        <div class="ms-text">Teammate leans toward toy: <strong>"Milo, why is the sky blue?"</strong> Milo responds — funny, curious, story-driven. Something like "Great question! Imagine the sky is a giant bowl of cereal and sunlight is the spoon..." Judges smile.</div>
+      </div>
+    </div>
+    <div class="moment-step">
+      <div class="ms-num">03</div>
+      <div class="ms-content">
+        <div class="ms-title">The memory moment (15 seconds)</div>
+        <div class="ms-text">Teammate walks away, comes back: <strong>"Milo, hi!"</strong> Milo says: <strong>"Hey! Last time we talked you asked me about the sky — want to hear something even cooler about space?"</strong> The room goes quiet. That's the moment.</div>
+      </div>
+    </div>
+    <div class="moment-step">
+      <div class="ms-num">04</div>
+      <div class="ms-content">
+        <div class="ms-title">The parent voice moment (20 seconds)</div>
+        <div class="ms-text">Trigger the cry audio near the mic. Milo immediately plays the parent's recorded voice: <strong>"Hey baby, mama's here, it's okay."</strong> Simultaneously, show the judge's phone — push notification just arrived. Two things happening at once. Pure product.</div>
+      </div>
+    </div>
+    <div class="moment-step">
+      <div class="ms-num">05</div>
+      <div class="ms-content">
+        <div class="ms-title">The parent app close (20 seconds)</div>
+        <div class="ms-text">Show the phone. <strong>"This is what the parent sees at the end of the day."</strong> Daily report card: topics, mood arc, cry log. Presenter closes with: <strong>"Milo isn't a toy. It's a presence. The first product that makes a child feel their parent is always there."</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-brand">MILO</div>
+  <div>Hackathon day strategy · 24hr breakdown</div>
+  <div>pre-work = confidence · hackathon = magic</div>
+</div>
+
+</body>
+</html>

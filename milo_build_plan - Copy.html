@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milo — 15 Day Hackathon Build Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6f0;
+    --muted: #7a7890;
+    --hint: #45435a;
+
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.12);
+    --coral: #fb7185;
+    --coral-dim: rgba(251,113,133,0.12);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.12);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 48px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border2);
+  }
+  .header-left { flex: 1; }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: var(--teal-dim);
+    border: 1px solid rgba(45,212,191,0.25);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-family: 'DM Mono', monospace;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  h1 span { color: var(--teal); }
+  .subtitle {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+  .header-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .meta-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .meta-pill strong { color: var(--text); font-weight: 500; }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    margin-top: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Features grid ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .feature-card.f1::before { background: var(--coral); }
+  .feature-card.f2::before { background: var(--purple); }
+  .feature-card.f3::before { background: var(--teal); }
+  .feature-card.f4::before { background: var(--amber); }
+
+  .feature-num {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--hint);
+    margin-bottom: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+  .feature-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .feature-card.f1 .feature-name { color: var(--coral); }
+  .feature-card.f2 .feature-name { color: var(--purple); }
+  .feature-card.f3 .feature-name { color: var(--teal); }
+  .feature-card.f4 .feature-name { color: var(--amber); }
+  .feature-desc { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+  /* ── Phase / day blocks ── */
+  .phase-block {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .p1 .phase-badge { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+  .p2 .phase-badge { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+  .p3 .phase-badge { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+  .p4 .phase-badge { background: var(--coral-dim); color: var(--coral); border: 1px solid rgba(251,113,133,0.2); }
+
+  .phase-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .phase-subtitle { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0;
+  }
+  .day-block {
+    padding: 18px 22px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .day-block:last-child { border-right: none; }
+  .day-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hint);
+    margin-bottom: 8px;
+  }
+  .day-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .task-list { list-style: none; }
+  .task-list li {
+    font-size: 11.5px;
+    color: var(--muted);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .task-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--hint);
+    font-size: 10px;
+  }
+
+  .deliverable-bar {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11.5px;
+  }
+  .p1 .deliverable-bar { background: var(--teal-dim); }
+  .p2 .deliverable-bar { background: var(--purple-dim); }
+  .p3 .deliverable-bar { background: var(--amber-dim); }
+  .p4 .deliverable-bar { background: var(--coral-dim); }
+
+  .del-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .p1 .del-label { color: var(--teal); }
+  .p2 .del-label { color: var(--purple); }
+  .p3 .del-label { color: var(--amber); }
+  .p4 .del-label { color: var(--coral); }
+  .del-text { color: var(--text); }
+
+  /* ── Components table ── */
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .comp-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .comp-layer {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .comp-card.hw .comp-layer { color: var(--blue); }
+  .comp-card.sw .comp-layer { color: var(--green); }
+  .comp-card.ai .comp-layer { color: var(--purple); }
+  .comp-card.fe .comp-layer { color: var(--amber); }
+  .comp-card.be .comp-layer { color: var(--coral); }
+
+  .comp-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .comp-role { color: var(--muted); font-size: 11.5px; line-height: 1.55; }
+  .comp-tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-top: 8px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .hw .comp-tag { background: var(--blue-dim); color: var(--blue); }
+  .sw .comp-tag { background: var(--green-dim); color: var(--green); }
+  .ai .comp-tag { background: var(--purple-dim); color: var(--purple); }
+  .fe .comp-tag { background: var(--amber-dim); color: var(--amber); }
+  .be .comp-tag { background: var(--coral-dim); color: var(--coral); }
+
+  /* ── Rules grid ── */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .rule-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .rule-icon {
+    font-size: 18px;
+    margin-bottom: 8px;
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: var(--teal);
+  }
+  .rule-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .rule-text { color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+  /* ── Team roles ── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .team-role {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .team-owns { color: var(--muted); font-size: 11px; line-height: 1.6; }
+  .team-owns span { color: var(--text); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--hint);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--teal);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="tag">Hackathon Build Plan</div>
+    <h1>MILO<span>.</span></h1>
+    <p class="subtitle">The smart companion toy that grows with your child</p>
+  </div>
+  <div class="header-meta">
+    <div class="meta-pill"><strong>15 days</strong> pre-work</div>
+    <div class="meta-pill"><strong>24 hrs</strong> hackathon build</div>
+    <div class="meta-pill"><strong>4 features</strong> finalized</div>
+    <div class="meta-pill"><strong>Ages</strong> 3 – 8 yrs</div>
+  </div>
+</div>
+
+<!-- Features -->
+<div class="section-title">Finalized features</div>
+<div class="features-grid">
+  <div class="feature-card f1">
+    <div class="feature-num">01 / SAFETY</div>
+    <div class="feature-name">Cry Alert</div>
+    <div class="feature-desc">Toy detects infant crying using an audio classifier running in a background thread. Instantly plays a pre-recorded parent comfort clip and fires a push notification to the parent's phone with timestamp and duration.</div>
+  </div>
+  <div class="feature-card f2">
+    <div class="feature-num">02 / ENGAGEMENT</div>
+    <div class="feature-name">Sentiment-Adaptive Storytelling</div>
+    <div class="feature-desc">AI detects the child's mood via voice analysis (pitch, pace, volume). Responds with humor, storytelling, and age-appropriate energy matching the child's current state — never boring, never overwhelming.</div>
+  </div>
+  <div class="feature-card f3">
+    <div class="feature-num">03 / CONNECTION</div>
+    <div class="feature-name">Parent Voice Layer</div>
+    <div class="feature-desc">Parents record 20 tagged phrases in the app — comfort, praise, bedtime, greeting. The toy plays these at emotionally matched moments, making the child feel the parent's presence even when they're away.</div>
+  </div>
+  <div class="feature-card f4">
+    <div class="feature-num">04 / LEARNING</div>
+    <div class="feature-name">Q&A and Interaction</div>
+    <div class="feature-desc">Full voice-based conversation powered by Groq (Llama 3). Child asks anything — space, animals, "why is the sky blue?" — and Milo answers in a warm, child-safe, curiosity-first way under 500ms.</div>
+  </div>
+</div>
+
+<!-- Phase 1 -->
+<div class="section-title">15-day build plan</div>
+
+<div class="phase-block p1">
+  <div class="phase-header">
+    <div class="phase-badge">Phase 1</div>
+    <div class="phase-title">Core Voice Loop</div>
+    <div class="phase-subtitle">Days 1 – 4</div>
+  </div>
+  <div class="days-grid">
+    <div class="day-block">
+      <div class="day-label">Day 1</div>
+      <div class="day-title">Environment setup</div>
+      <ul class="task-list">
+        <li>Buy hardware: laptop, USB mic, speaker, toy shell</li>
+        <li>Install Python 3.11, pip dependencies</li>
+        <li>Test mic input and speaker output with PyAudio</li>
+        <li>Create project repo and folder structure</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 2</div>
+      <div class="day-title">Speech-to-text</div>
+      <ul class="task-list">
+        <li>Integrate OpenAI Whisper (base model, local)</li>
+        <li>Record audio → transcribe → print text loop working</li>
+        <li>Add silence detection to stop recording naturally</li>
+        <li>Test accuracy with child-like speech samples</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 3</div>
+      <div class="day-title">LLM + TTS</div>
+      <ul class="task-list">
+        <li>Set up Groq API key, test Llama 3 response</li>
+        <li>Write child-safe system prompt with storyteller persona</li>
+        <li>Integrate pyttsx3 TTS for spoken output</li>
+        <li>Full loop: speak → hear → reply → speak working</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 4</div>
+      <div class="day-title">Stabilise loop</div>
+      <ul class="task-list">
+        <li>Add wake word detection (pvporcupine or keyword match)</li>
+        <li>Handle interruptions and silence gracefully</li>
+        <li>Modularise code: each feature is a plug-in file</li>
+        <li>Run 30-min continuous test, fix crashes</li>
+      </ul>
+    </div>
+  </div>
+  <div class="deliverable-bar">
+    <span class="del-label">Day 4 output →</span>
+    <span class="del-text">A toy that wakes up, listens to a child, and has a real conversation. Feature 4 (Q&amp;A) is complete.</span>
+  </div>
+</div>
+
+<!-- Phase 2 -->
+<div class="phase-block p2">
+  <div class="phase-header">
+    <div class="phase-badge">Phase 2</div>
+    <div class="phase-title">Sentiment + Storytelling</div>
+    <div class="phase-subtitle">Days 5 – 8</div>
+  </div>
+  <div class="days-grid">
+    <div class="day-block">
+      <div class="day-label">Day 5</div>
+      <div class="day-title">Audio mood analysis</div>
+      <ul class="task-list">
+        <li>Install librosa, run on recorded audio clips</li>
+        <li>Extract: avg pitch, speech rate, volume variance</li>
+        <li>Map features to 4 mood buckets: sad, tired, excited, calm</li>
+        <li>Test with 10 different voice samples, tune thresholds</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 6</div>
+      <div class="day-title">LLM mood injection</div>
+      <ul class="task-list">
+        <li>Pass mood tag into Groq system prompt dynamically</li>
+        <li>Write persona rules: sad → gentle story, excited → playful</li>
+        <li>Add humor instructions: puns, funny voices, silly comparisons</li>
+        <li>Test: same question, different moods → different replies</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 7</div>
+      <div class="day-title">Storytelling mode</div>
+      <ul class="task-list">
+        <li>Build "story trigger" — if child says story/tell me — switch mode</li>
+        <li>LLM generates 3-part story with cliffhanger + resolution</li>
+        <li>Add TTS speed variation: slow for sad, fast for excited</li>
+        <li>Test full story flow start to finish with a real child if possible</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 8</div>
+      <div class="day-title">Polish + test</div>
+      <ul class="task-list">
+        <li>Run 20 real conversation tests, note where it feels robotic</li>
+        <li>Tune system prompt based on feedback</li>
+        <li>Ensure mood detection doesn't slow response under 700ms</li>
+        <li>Log mood + topic data to JSON file for parent app later</li>
+      </ul>
+    </div>
+  </div>
+  <div class="deliverable-bar">
+    <span class="del-label">Day 8 output →</span>
+    <span class="del-text">Milo adapts tone, tells stories with humor, and responds to how the child is feeling. Feature 2 complete.</span>
+  </div>
+</div>
+
+<!-- Phase 3 -->
+<div class="phase-block p3">
+  <div class="phase-header">
+    <div class="phase-badge">Phase 3</div>
+    <div class="phase-title">Cry Alert + Parent Voice</div>
+    <div class="phase-subtitle">Days 9 – 13</div>
+  </div>
+  <div class="days-grid">
+    <div class="day-block">
+      <div class="day-label">Day 9</div>
+      <div class="day-title">Cry detector</div>
+      <ul class="task-list">
+        <li>Download YAMNet TFLite model, run on sample audio</li>
+        <li>Run classifier in separate background thread (threading.Thread)</li>
+        <li>Set confidence threshold: cry detected if score > 0.6 for 3s</li>
+        <li>Print "CRY DETECTED" to console with timestamp</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 10</div>
+      <div class="day-title">Firebase + push alert</div>
+      <ul class="task-list">
+        <li>Create Firebase project, enable Realtime DB + FCM</li>
+        <li>On cry event: write to Firebase {time, duration, confidence}</li>
+        <li>Set up FCM push notification to parent phone</li>
+        <li>Test: simulate cry audio → phone notification fires in &lt;5s</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 11</div>
+      <div class="day-title">Parent voice clips</div>
+      <ul class="task-list">
+        <li>Build clip recording script (or simple web form)</li>
+        <li>Define 5 clip categories: comfort, praise, greeting, bedtime, gentle-scold</li>
+        <li>Record a test set of 20 clips using a teammate's voice</li>
+        <li>Store as /clips/comfort_1.mp3 etc., build lookup table</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 12–13</div>
+      <div class="day-title">Clip trigger logic</div>
+      <ul class="task-list">
+        <li>LLM tags each response with emotion category</li>
+        <li>On cry: immediately play comfort clip, skip LLM call</li>
+        <li>On praise moment in Q&A: play praise clip after LLM response</li>
+        <li>On bedtime keyword: switch to bedtime mode, play lullaby clip</li>
+      </ul>
+    </div>
+  </div>
+  <div class="deliverable-bar">
+    <span class="del-label">Day 13 output →</span>
+    <span class="del-text">Cry is detected + parent is alerted + comfort clip plays. Parent voice feels present. Features 1 and 3 complete.</span>
+  </div>
+</div>
+
+<!-- Phase 4 -->
+<div class="phase-block p4">
+  <div class="phase-header">
+    <div class="phase-badge">Phase 4</div>
+    <div class="phase-title">Parent App + Final Integration</div>
+    <div class="phase-subtitle">Days 14 – 15</div>
+  </div>
+  <div class="days-grid">
+    <div class="day-block">
+      <div class="day-label">Day 14</div>
+      <div class="day-title">Parent app</div>
+      <ul class="task-list">
+        <li>React + Vite app: 3 screens — Dashboard, Voice Studio, Alerts</li>
+        <li>Dashboard: daily report card from JSON log (topics, mood arc)</li>
+        <li>Alerts screen: list of cry events with time and duration</li>
+        <li>Voice Studio: record + upload clips, tagged by category</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 15</div>
+      <div class="day-title">Integration + dry run</div>
+      <ul class="task-list">
+        <li>Full system test: all 4 features running simultaneously</li>
+        <li>Simulate complete hackathon demo start to finish</li>
+        <li>Fix any crashes, edge cases, latency spikes</li>
+        <li>Pack go-bag. Freeze the code. No new features after Day 15.</li>
+      </ul>
+    </div>
+    <div class="day-block">
+      <div class="day-label">Day 15 prep</div>
+      <div class="day-title">Demo rehearsal</div>
+      <ul class="task-list">
+        <li>Assign speaking roles to each teammate</li>
+        <li>Prepare live parent voice recording moment for judges</li>
+        <li>Have cry simulation audio file ready to trigger on command</li>
+        <li>Charge everything. Bring backup hotspot + power bank.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="deliverable-bar">
+    <span class="del-label">Day 15 output →</span>
+    <span class="del-text">Milo is fully integrated, demo-rehearsed, and ready to win. All 4 features live, parent app live, toy packaged.</span>
+  </div>
+</div>
+
+<!-- Components -->
+<div class="section-title">All components and their roles</div>
+<div class="components-grid">
+
+  <div class="comp-card hw">
+    <div class="comp-layer">Hardware</div>
+    <div class="comp-name">USB Microphone</div>
+    <div class="comp-role">Always-on audio input. Captures child speech, crying, and ambient sound. Feeds all three audio classification threads simultaneously.</div>
+    <div class="comp-tag">₹800 · USB</div>
+  </div>
+
+  <div class="comp-card hw">
+    <div class="comp-layer">Hardware</div>
+    <div class="comp-name">Laptop (hidden)</div>
+    <div class="comp-role">The brain of Milo. Runs all Python processes. Hidden behind or under the demo table. Child never sees it — they see only the toy.</div>
+    <div class="comp-tag">Already owned</div>
+  </div>
+
+  <div class="comp-card hw">
+    <div class="comp-layer">Hardware</div>
+    <div class="comp-name">Small Speaker</div>
+    <div class="comp-role">Voice output for all toy responses — LLM replies, TTS speech, and parent audio clips. Sits inside the stuffed toy belly.</div>
+    <div class="comp-tag">₹600 · 3.5mm / BT</div>
+  </div>
+
+  <div class="comp-card hw">
+    <div class="comp-layer">Hardware</div>
+    <div class="comp-name">Stuffed Toy Shell</div>
+    <div class="comp-role">The physical product judges interact with. Mic hidden in back seam, speaker in belly. Creates the illusion of a self-contained smart toy with zero hardware visible.</div>
+    <div class="comp-tag">₹400 · any plush toy</div>
+  </div>
+
+  <div class="comp-card hw">
+    <div class="comp-layer">Hardware</div>
+    <div class="comp-name">Phone Hotspot</div>
+    <div class="comp-role">Internet for Groq API calls and Firebase sync. Dedicated hotspot ensures you're not depending on hackathon WiFi, which always fails at the worst moment.</div>
+    <div class="comp-tag">Backup critical</div>
+  </div>
+
+  <div class="comp-card sw">
+    <div class="comp-layer">Software · STT</div>
+    <div class="comp-name">OpenAI Whisper</div>
+    <div class="comp-role">Speech-to-text. Converts child's spoken words into text for the LLM. Runs locally (base model). Handles accents and child speech patterns well.</div>
+    <div class="comp-tag">Free · Python</div>
+  </div>
+
+  <div class="comp-card sw">
+    <div class="comp-layer">Software · TTS</div>
+    <div class="comp-name">pyttsx3 / gTTS</div>
+    <div class="comp-role">Text-to-speech for LLM responses. pyttsx3 is offline and instant. gTTS (Google) sounds more natural. Use pyttsx3 as fallback if internet drops.</div>
+    <div class="comp-tag">Free · Python</div>
+  </div>
+
+  <div class="comp-card sw">
+    <div class="comp-layer">Software · Audio</div>
+    <div class="comp-name">librosa</div>
+    <div class="comp-role">Mood detection engine. Extracts pitch, speech rate, and volume variance from audio. Maps to sad / tired / excited / calm. Runs in under 100ms per clip.</div>
+    <div class="comp-tag">Free · Python</div>
+  </div>
+
+  <div class="comp-card sw">
+    <div class="comp-layer">Software · Audio</div>
+    <div class="comp-name">YAMNet (TFLite)</div>
+    <div class="comp-role">Cry detection classifier. Pre-trained Google audio model that recognises crying, screaming, and distress sounds. Runs in a background thread continuously while toy is on.</div>
+    <div class="comp-tag">Free · TensorFlow Lite</div>
+  </div>
+
+  <div class="comp-card sw">
+    <div class="comp-layer">Software · Audio</div>
+    <div class="comp-name">PyAudio</div>
+    <div class="comp-role">Low-level audio capture from USB mic. Feeds raw PCM audio into Whisper, librosa, and YAMNet simultaneously using Python threads.</div>
+    <div class="comp-tag">Free · Python</div>
+  </div>
+
+  <div class="comp-card ai">
+    <div class="comp-layer">AI · LLM</div>
+    <div class="comp-name">Groq API (Llama 3)</div>
+    <div class="comp-role">Core intelligence. Powers all Q&A, storytelling, humor, and conversational responses. Sub-500ms latency. Free tier sufficient for hackathon. Receives mood tag in system prompt to adapt tone.</div>
+    <div class="comp-tag">Free tier · API</div>
+  </div>
+
+  <div class="comp-card ai">
+    <div class="comp-layer">AI · Prompt</div>
+    <div class="comp-name">Child-Safe System Prompt</div>
+    <div class="comp-role">The personality layer. Instructs LLM to be warm, funny, curious, age-appropriate, and story-driven. Includes mood signal injection and topic safety rules. The most important 200 words in the project.</div>
+    <div class="comp-tag">Crafted manually</div>
+  </div>
+
+  <div class="comp-card be">
+    <div class="comp-layer">Backend</div>
+    <div class="comp-name">Python Flask</div>
+    <div class="comp-role">Lightweight local server connecting the toy's Python brain to the parent React app. Exposes REST endpoints: /log, /clips, /alerts. Runs on localhost during hackathon.</div>
+    <div class="comp-tag">Free · Python</div>
+  </div>
+
+  <div class="comp-card be">
+    <div class="comp-layer">Backend · Cloud</div>
+    <div class="comp-name">Firebase (RTDB + FCM)</div>
+    <div class="comp-role">Two jobs: Realtime Database stores cry events and conversation logs in real-time for the parent app to read. FCM (Firebase Cloud Messaging) sends push notifications to the parent's phone on cry detection.</div>
+    <div class="comp-tag">Free tier · Google</div>
+  </div>
+
+  <div class="comp-card fe">
+    <div class="comp-layer">Frontend</div>
+    <div class="comp-name">React + Vite</div>
+    <div class="comp-role">Parent app. Three screens: Dashboard (daily report), Alerts (cry log), Voice Studio (record clips). Runs as a mobile web app — any judge can open it on their phone during the demo.</div>
+    <div class="comp-tag">Free · JS</div>
+  </div>
+
+  <div class="comp-card fe">
+    <div class="comp-layer">Frontend · Charts</div>
+    <div class="comp-name">Recharts</div>
+    <div class="comp-role">Mood arc chart in the parent dashboard. Shows the child's emotional state across the day as a simple line chart. Makes the sentiment analysis feature visible and tangible to judges.</div>
+    <div class="comp-tag">Free · React lib</div>
+  </div>
+
+</div>
+
+<!-- Hackathon rules -->
+<div class="section-title">Hackathon rules to follow</div>
+<div class="rules-grid">
+  <div class="rule-card">
+    <span class="rule-icon">01</span>
+    <div class="rule-title">Freeze code at Day 15</div>
+    <div class="rule-text">No new features once you walk in. The 24hrs is for wiring, polishing, and recording the live parent voice session — not building new things.</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-icon">02</span>
+    <div class="rule-title">Never show a terminal to judges</div>
+    <div class="rule-text">All demo interaction happens through the toy and the parent app on a phone. The laptop stays hidden. Judges should never know it's a laptop.</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-icon">03</span>
+    <div class="rule-title">Record parent voice live</div>
+    <div class="rule-text">At the hackathon, do the parent recording in front of judges. Let them say a phrase into the phone, then watch the toy play it back to the "child." That 30 seconds wins the room.</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-icon">04</span>
+    <div class="rule-title">Prepare cry simulation</div>
+    <div class="rule-text">Have a 5-second cry audio file you can play near the mic on command. Triggering the alert live during a demo is more powerful than explaining it.</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-icon">05</span>
+    <div class="rule-title">One person owns each feature</div>
+    <div class="rule-text">No shared ownership. Cry alert = Person A. Voice layer = Person B. App = Person C. LLM + sentiment = Person D. Everyone knows their module cold.</div>
+  </div>
+  <div class="rule-card">
+    <span class="rule-icon">06</span>
+    <div class="rule-title">Sleep in shifts at hr 18</div>
+    <div class="rule-text">Lock the build at hour 18. One person stays awake to monitor. Everyone else sleeps. A rested team presents 10× better than an exhausted one.</div>
+  </div>
+</div>
+
+<!-- Team roles -->
+<div class="section-title">Suggested team split (3–4 people)</div>
+<div class="team-grid">
+  <div class="team-card">
+    <div class="team-role">AI / Python Lead</div>
+    <div class="team-owns">Owns: <span>Groq integration, system prompt, sentiment pipeline, Whisper STT, voice loop stability</span></div>
+  </div>
+  <div class="team-card">
+    <div class="team-role">Hardware / Audio</div>
+    <div class="team-owns">Owns: <span>YAMNet cry detector, librosa mood analysis, PyAudio capture, threading architecture, speaker/mic setup</span></div>
+  </div>
+  <div class="team-card">
+    <div class="team-role">Frontend / App</div>
+    <div class="team-owns">Owns: <span>React parent app, Firebase integration, FCM push alerts, daily report UI, voice recording studio screen</span></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-brand">MILO</div>
+  <div>Smart companion toy · hackathon prototype · 15-day build plan</div>
+  <div>4 features · 3 people · 1 demo that wins the room</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milo — PPT Slide Content</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --white: #ffffff;
+    --border: #e2dfd8;
+    --text: #1a1814;
+    --muted: #6b6760;
+    --hint: #b0ada6;
+    --accent: #1a56db;
+    --accent-light: #ebf0fd;
+    --green: #166534;
+    --green-light: #dcfce7;
+    --amber: #92400e;
+    --amber-light: #fef3c7;
+    --red: #991b1b;
+    --red-light: #fee2e2;
+    --purple: #5b21b6;
+    --purple-light: #ede9fe;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 40px 28px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* Top header */
+  .doc-header {
+    background: var(--text);
+    color: #fff;
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .doc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .doc-title span { color: #60a5fa; }
+  .doc-sub { color: #9ca3af; font-size: 11px; margin-top: 6px; }
+  .doc-meta { text-align: right; font-size: 11px; color: #9ca3af; line-height: 1.8; }
+
+  /* How to use box */
+  .how-to {
+    background: var(--accent-light);
+    border: 1px solid #93c5fd;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    font-size: 12px;
+    color: #1e40af;
+    line-height: 1.7;
+  }
+  .how-to strong { font-weight: 600; }
+
+  /* Slide card */
+  .slide {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .slide-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .slide-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--hint);
+    text-transform: uppercase;
+    min-width: 60px;
+  }
+  .slide-type {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .type-title { background: var(--text); color: #fff; }
+  .type-problem { background: var(--red-light); color: var(--red); }
+  .type-solution { background: var(--green-light); color: var(--green); }
+  .type-feature { background: var(--purple-light); color: var(--purple); }
+  .type-tech { background: var(--amber-light); color: var(--amber); }
+  .type-plan { background: var(--accent-light); color: var(--accent); }
+  .type-demo { background: #fce7f3; color: #9d174d; }
+  .type-market { background: #f0fdf4; color: #14532d; }
+  .type-close { background: var(--text); color: #fff; }
+
+  .slide-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  .slide-body { padding: 20px 24px; }
+
+  /* Slide title */
+  .s-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .s-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  /* Content blocks */
+  .content-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hint);
+    margin-bottom: 8px;
+    margin-top: 16px;
+  }
+  .content-label:first-child { margin-top: 0; }
+
+  .bullet-list { list-style: none; }
+  .bullet-list li {
+    padding: 5px 0 5px 18px;
+    position: relative;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    border-bottom: 1px solid #f5f3ef;
+  }
+  .bullet-list li:last-child { border-bottom: none; }
+  .bullet-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 10px;
+    top: 7px;
+  }
+  .bullet-list li .sub {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Stat callout */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .stat-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  /* Feature row */
+  .feature-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .feature-box {
+    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+  }
+  .f-coral { background: #fff7f5; border-color: #fecaca; }
+  .f-purple { background: #faf5ff; border-color: #ddd6fe; }
+  .f-teal { background: #f0fdfa; border-color: #99f6e4; }
+  .f-amber { background: #fffbeb; border-color: #fde68a; }
+  .feature-box-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .f-coral .feature-box-title { color: #9f1239; }
+  .f-purple .feature-box-title { color: #5b21b6; }
+  .f-teal .feature-box-title { color: #0f766e; }
+  .f-amber .feature-box-title { color: #92400e; }
+  .feature-box-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* Tech stack row */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .tech-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .tech-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .tech-role { font-size: 10px; color: var(--muted); line-height: 1.4; }
+
+  /* Timeline */
+  .timeline { margin: 8px 0; }
+  .timeline-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0ede6;
+  }
+  .timeline-row:last-child { border-bottom: none; }
+  .timeline-days {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 72px;
+    padding-top: 1px;
+  }
+  .timeline-content {}
+  .timeline-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+    font-family: 'Syne', sans-serif;
+  }
+  .timeline-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* Speaker notes */
+  .speaker-notes {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+  }
+  .notes-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #92400e;
+    margin-bottom: 6px;
+  }
+  .notes-text { font-size: 11.5px; color: #78350f; line-height: 1.65; }
+
+  /* Big quote */
+  .big-quote {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+    padding: 16px 0;
+    letter-spacing: -0.01em;
+  }
+  .big-quote em { color: var(--accent); font-style: normal; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  .compare-table th {
+    background: var(--text);
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .compare-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:first-child { color: var(--text); font-weight: 500; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .yes { color: #166534; font-weight: 600; }
+  .no { color: #991b1b; }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+  .phase-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+  .ph1 { background: #dbeafe; color: #1d40ae; }
+  .ph2 { background: #ede9fe; color: #5b21b6; }
+  .ph3 { background: #fef3c7; color: #92400e; }
+  .ph4 { background: #dcfce7; color: #166534; }
+
+</style>
+</head>
+<body>
+
+<!-- Doc header -->
+<div class="doc-header">
+  <div>
+    <div class="doc-title">MILO<span>.</span><br>Slide Content</div>
+    <div class="doc-sub">Copy-paste ready · 12 slides · Hackathon pitch deck</div>
+  </div>
+  <div class="doc-meta">
+    12 slides total<br>
+    ~3 min presentation<br>
+    Ages 3–8 · Smart Toy
+  </div>
+</div>
+
+<!-- How to use -->
+<div class="how-to">
+  <strong>How to use this document:</strong> Each card below = one slide. The <strong>Slide Title</strong> goes in your big heading. Bullet points go in the body. <strong>Speaker notes</strong> (yellow box) are what you say out loud — don't put them on the slide. Suggested color palette: Dark navy <strong>#1E2761</strong> (title/closing slides) + White <strong>#FFFFFF</strong> (content slides) + Accent blue <strong>#1A56DB</strong>. Font: Syne or Impact for headings, Calibri for body.
+</div>
+
+
+<!-- SLIDE 1 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 01</span>
+    <span class="slide-type type-title">Title</span>
+    <span class="slide-name">Opening / Hook</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Meet Milo.</div>
+    <div class="s-subtitle">The smart companion toy that feels like home — even when parents can't be there.</div>
+    <div class="divider"></div>
+    <div class="content-label">Tagline (put below the title in smaller text)</div>
+    <p style="font-size:14px; color: var(--muted); font-style:italic;">"What if your child's favourite toy could actually listen, understand, and care?"</p>
+    <div class="content-label" style="margin-top:16px;">Bottom of slide — team info</div>
+    <ul class="bullet-list">
+      <li>Team name · Hackathon name · Date</li>
+      <li>Category: AI + EdTech + Child Safety</li>
+    </ul>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes — say this out loud</div>
+      <div class="notes-text">Start by holding up the toy. Don't say anything for 3 seconds. Then: "This is Milo. Milo is not a toy. Milo is a presence." Pause. Then go into the problem.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 2 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 02</span>
+    <span class="slide-type type-problem">Problem</span>
+    <span class="slide-name">The Problem</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Ages 3–8 are the most critical years. They're also the most unsupervised.</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num">73%</div>
+        <div class="stat-label">of Indian urban households are dual-income families</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">4.5 hrs</div>
+        <div class="stat-label">average daily screen time for kids under 8 in India</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">₹0</div>
+        <div class="stat-label">worth of existing toys that actually understand a child's mood</div>
+      </div>
+    </div>
+    <div class="content-label">The 3 core problems</div>
+    <ul class="bullet-list">
+      <li>Parents are away — kids default to passive screens, zero engagement
+        <span class="sub">YouTube and games replace real interaction during critical development years</span>
+      </li>
+      <li>Parents are emotionally blind — they don't know what their child felt all day
+        <span class="sub">No product tells parents "your child was upset at 3pm" or "she asked about death today"</span>
+      </li>
+      <li>Existing smart speakers aren't built for children or families
+        <span class="sub">Alexa doesn't know your child's name, your values, or your voice</span>
+      </li>
+    </ul>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">Ask the audience: "How many of you grew up with a parent who worked long hours?" Then: "And how many of you wish someone — or something — had been there to answer your questions and make you feel safe?" That's the problem Milo solves.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 3 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 03</span>
+    <span class="slide-type type-solution">Solution</span>
+    <span class="slide-name">What is Milo</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Milo is an AI-powered smart toy. It listens, understands, and responds — like a trusted friend.</div>
+    <div class="content-label">What Milo does in one line</div>
+    <div class="big-quote">"A stuffed toy powered by AI that <em>knows your child</em>, <em>comforts them</em> in your voice, and <em>keeps you informed</em> — all day, every day."</div>
+    <div class="content-label">How it works — 3 steps</div>
+    <ul class="bullet-list">
+      <li>Child talks to Milo → Milo understands what they need (question, story, comfort, or help)
+      </li>
+      <li>Milo responds with humor, storytelling, and warmth — adapting to how the child feels right now</li>
+      <li>Parent gets a daily report + real-time alerts if the child is crying or distressed</li>
+    </ul>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">This is your "aha" slide. Keep it simple. The audience should understand the product in 20 seconds. Then transition: "Let me show you the four things Milo can actually do."</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 4 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 04</span>
+    <span class="slide-type type-feature">Features</span>
+    <span class="slide-name">4 Core Features</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Four features. One toy. Built for real family life.</div>
+    <div class="feature-row">
+      <div class="feature-box f-coral">
+        <div class="feature-box-title">01 · Cry Alert</div>
+        <div class="feature-box-desc">Detects crying using on-device audio AI. Plays a parent comfort clip instantly. Sends a push notification to the parent's phone with time and duration.</div>
+      </div>
+      <div class="feature-box f-purple">
+        <div class="feature-box-title">02 · Sentiment-Adaptive Storytelling</div>
+        <div class="feature-box-desc">Analyses the child's voice tone in real time. Responds with humor, stories, and warmth matched to the child's current emotional state — never boring, never overwhelming.</div>
+      </div>
+      <div class="feature-box f-teal">
+        <div class="feature-box-title">03 · Parent Voice Layer</div>
+        <div class="feature-box-desc">Parents record 20 phrases in the app. Milo plays them at emotionally matched moments — comfort when the child is sad, praise when they do well, lullabies at bedtime.</div>
+      </div>
+      <div class="feature-box f-amber">
+        <div class="feature-box-title">04 · Q&A and Interaction</div>
+        <div class="feature-box-desc">Full voice-based conversation powered by Groq AI. Child asks anything — space, animals, why the sky is blue — and Milo answers in a warm, child-safe, curiosity-first way.</div>
+      </div>
+    </div>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">Walk through each feature in 15 seconds. Don't over-explain. The demo slide will show these working. Just plant the seeds here.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 5 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 05</span>
+    <span class="slide-type type-feature">Feature Deep Dive</span>
+    <span class="slide-name">Cry Alert</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Feature 01: Cry Alert — real-time safety for parents who can't always be there.</div>
+    <div class="two-col">
+      <div>
+        <div class="content-label">How it works</div>
+        <ul class="bullet-list">
+          <li>Microphone is always on in a low-power background thread</li>
+          <li>YAMNet audio classifier checks for cry signals every second</li>
+          <li>Cry confirmed after 3 seconds above confidence threshold</li>
+          <li>Comfort clip plays instantly — zero cloud latency</li>
+          <li>Push notification fires to parent's phone in under 5 seconds</li>
+        </ul>
+      </div>
+      <div>
+        <div class="content-label">What the parent sees</div>
+        <ul class="bullet-list">
+          <li>Notification: "Milo detected crying at 3:14 PM"</li>
+          <li>Duration: "lasted approximately 45 seconds"</li>
+          <li>Weekly pattern: "Priya cried 3 evenings this week around 6 PM"</li>
+          <li>Parent can listen to comfort clip that played</li>
+        </ul>
+        <div class="content-label" style="margin-top:14px;">Why this matters</div>
+        <p style="font-size:12px; color:var(--muted); line-height:1.6;">A working parent in a meeting gets a notification. They know their child is being comforted by their own voice. That is peace of mind no other product currently offers.</p>
+      </div>
+    </div>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">Trigger the live cry demo here if you're doing it. Play a 5-second crying audio file near the mic. Show the notification arriving on the phone. Let the silence do the work after it fires.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 6 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 06</span>
+    <span class="slide-type type-feature">Feature Deep Dive</span>
+    <span class="slide-name">Sentiment + Storytelling</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Feature 02: Milo doesn't just hear what you say. It hears how you feel.</div>
+    <div class="content-label">The sentiment pipeline</div>
+    <ul class="bullet-list">
+      <li>Child's voice is captured → librosa analyses pitch, pace, and volume variance in under 100ms</li>
+      <li>Maps to one of 4 mood states: <strong>sad · tired · excited · calm</strong></li>
+      <li>Mood signal is passed into the AI system prompt before generating a response</li>
+      <li>AI adjusts: tone, vocabulary, story energy, humor level, and response length — automatically</li>
+    </ul>
+    <div class="content-label">Example — same question, different moods</div>
+    <table class="compare-table">
+      <tr>
+        <th>Child says</th>
+        <th>Mood detected</th>
+        <th>How Milo responds</th>
+      </tr>
+      <tr>
+        <td>"Tell me about dinosaurs"</td>
+        <td>Excited</td>
+        <td>Fast, playful, full of fun facts and silly comparisons — "T-Rex had arms shorter than yours!"</td>
+      </tr>
+      <tr>
+        <td>"Tell me about dinosaurs"</td>
+        <td>Sad / tired</td>
+        <td>Slow, warm, story-mode — "Once upon a time, a gentle dinosaur named Pip…"</td>
+      </tr>
+      <tr>
+        <td>"I don't want to sleep"</td>
+        <td>Tired</td>
+        <td>Soft voice, breathing exercise disguised as a story, transitions to lullaby clip</td>
+      </tr>
+    </table>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">This is the feature that makes judges lean forward. The key line: "Every other voice assistant gives the same answer every time. Milo gives the right answer for right now." Let that land before moving on.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 7 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 07</span>
+    <span class="slide-type type-feature">Feature Deep Dive</span>
+    <span class="slide-name">Parent Voice Layer</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Feature 03: When a child hears "I love you baby" from Milo — it's actually their parent's voice.</div>
+    <div class="two-col">
+      <div>
+        <div class="content-label">How parents set it up</div>
+        <ul class="bullet-list">
+          <li>Open the Milo parent app → go to Voice Studio</li>
+          <li>Record 20 phrases across 5 categories</li>
+          <li>Comfort: "It's okay baby, I'm here"</li>
+          <li>Praise: "I'm so proud of you!"</li>
+          <li>Bedtime: "Sleep tight, I love you to the moon"</li>
+          <li>Greeting: "Good morning sunshine!"</li>
+          <li>Gentle guidance: "Let's try again, you've got this"</li>
+        </ul>
+      </div>
+      <div>
+        <div class="content-label">How Milo uses them</div>
+        <ul class="bullet-list">
+          <li>Cry detected → comfort clip plays within 1 second</li>
+          <li>Child answers a game correctly → praise clip plays</li>
+          <li>Child says "goodnight" → bedtime clip + lullaby</li>
+          <li>Child wakes the toy → greeting clip plays first</li>
+          <li>No matching clip? Milo responds in warm neutral tone</li>
+        </ul>
+        <div class="content-label" style="margin-top:14px;">The key insight</div>
+        <p style="font-size:12px; color:var(--muted); line-height:1.6;">We're not cloning the parent's voice. We're giving the parent a presence. The child hears their actual parent — not a robot pretending to be them.</p>
+      </div>
+    </div>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">This is your emotional peak. Ideally, do the live recording moment here — invite a judge or teammate to record "I love you, you're doing amazing" into the app. Then trigger Milo to play it. Watch the room react.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 8 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 08</span>
+    <span class="slide-type type-tech">Tech Stack</span>
+    <span class="slide-name">How We Built It</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Built in 15 days. Everything is open-source or free-tier.</div>
+    <div class="tech-grid">
+      <div class="tech-box">
+        <div class="tech-name">Groq + Llama 3</div>
+        <div class="tech-role">AI brain. Generates all responses. Sub-500ms latency.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">Whisper STT</div>
+        <div class="tech-role">Speech-to-text. Converts child speech to text locally.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">YAMNet</div>
+        <div class="tech-role">Google audio classifier. Detects crying in real time.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">librosa</div>
+        <div class="tech-role">Audio analysis. Extracts mood from voice tone and pace.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">Python + Flask</div>
+        <div class="tech-role">Core logic. Voice loop, threading, clip playback, API calls.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">Firebase</div>
+        <div class="tech-role">Real-time database + push notifications to parent phone.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">React + Vite</div>
+        <div class="tech-role">Parent app. Dashboard, cry alerts, voice recording studio.</div>
+      </div>
+      <div class="tech-box">
+        <div class="tech-name">pyttsx3 / gTTS</div>
+        <div class="tech-role">Text-to-speech. Speaks Milo's responses to the child.</div>
+      </div>
+    </div>
+    <div class="content-label" style="margin-top:14px;">Privacy architecture</div>
+    <ul class="bullet-list">
+      <li>No raw audio ever stored or sent to cloud — only processed metadata (mood tag, cry event)</li>
+      <li>Parent voice clips encrypted and stored locally on device</li>
+      <li>All AI inference happens on-device or via encrypted API call</li>
+    </ul>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">Keep this slide fast — 45 seconds max. The judges care about "did it work" more than "how did you build it." End with: "The entire stack costs under ₹6,000 in hardware and zero in software."</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 9 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 09</span>
+    <span class="slide-type type-plan">Build Plan</span>
+    <span class="slide-name">15-Day Roadmap</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">From idea to working prototype in 15 days.</div>
+    <div class="timeline">
+      <div class="timeline-row">
+        <div class="timeline-days"><span class="phase-pill ph1">Phase 1</span><br>Days 1–4</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Core voice loop</div>
+          <div class="timeline-desc">Mic → Whisper STT → Groq LLM → pyttsx3 TTS → Speaker. Full conversation working. Child-safe system prompt with storyteller persona written and tested.</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-days"><span class="phase-pill ph2">Phase 2</span><br>Days 5–8</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Sentiment + storytelling</div>
+          <div class="timeline-desc">librosa mood detection integrated. Mood signal passed to LLM prompt. Story mode, humor mode, and comfort mode all tested with real child interactions.</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-days"><span class="phase-pill ph3">Phase 3</span><br>Days 9–13</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Cry detection + parent voice</div>
+          <div class="timeline-desc">YAMNet classifier running in background thread. Firebase push alerts live. Parent voice recording studio built. 20 clips recorded and trigger logic wired.</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-days"><span class="phase-pill ph4">Phase 4</span><br>Days 14–15</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Integration + dry run</div>
+          <div class="timeline-desc">All features running simultaneously. Parent app connected to live toy. Full demo rehearsed. Code frozen. Toy packaged and demo-ready.</div>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">This slide proves you're not just dreamers. You have a concrete, phased plan. Emphasise: "Each phase has a working deliverable — we built in stages, not all at once." This builds credibility.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 10 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 10</span>
+    <span class="slide-type type-market">Market</span>
+    <span class="slide-name">Market Opportunity</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">A massive market. An untouched problem. A perfect entry point.</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num">$25B</div>
+        <div class="stat-label">Global smart toy market size by 2027</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">30%+</div>
+        <div class="stat-label">Year-on-year growth in India's EdTech + kids segment</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">Zero</div>
+        <div class="stat-label">Existing toys that adapt to mood AND include parent voice personalisation</div>
+      </div>
+    </div>
+    <div class="content-label">Who buys Milo</div>
+    <ul class="bullet-list">
+      <li>Primary: Urban dual-income families with children aged 3–8
+        <span class="sub">Time-poor, tech-comfortable, emotionally invested in child development</span>
+      </li>
+      <li>Secondary: Nuclear families without extended family nearby for childcare</li>
+      <li>B2B opportunity: Daycares, preschools, early childhood development centres</li>
+    </ul>
+    <div class="content-label">Competitive moat</div>
+    <ul class="bullet-list">
+      <li>Alexa / Google Home — not built for children, no personalisation, no emotion detection</li>
+      <li>Existing smart toys (Lovevery, LeapFrog) — no AI, no parent voice, no real-time alerts</li>
+      <li>Milo — the only product where the toy is literally trained by the parent</li>
+    </ul>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">The key line here: "No one has combined parent voice training, mood-adaptive AI, and child safety alerts in a single consumer product. We're not entering a category. We're creating one."</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 11 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 11</span>
+    <span class="slide-type type-demo">Live Demo</span>
+    <span class="slide-name">Demo Slide</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">Let us show you — not tell you.</div>
+    <div class="content-label">Demo sequence (what the audience will see)</div>
+    <ul class="bullet-list">
+      <li><strong>Step 1 — Q&A:</strong> Team member asks Milo "Why is the moon so big?" → Milo answers in a warm, child-friendly, story-infused way</li>
+      <li><strong>Step 2 — Mood adaptation:</strong> Same question asked in a sad, quiet voice → Milo detects the mood and responds gently with a short story instead of facts</li>
+      <li><strong>Step 3 — Parent voice:</strong> Judge records "You're amazing, I'm so proud of you" into the app → Milo plays it back 10 seconds later after a correct game answer</li>
+      <li><strong>Step 4 — Cry alert:</strong> Cry audio file played near the mic → comfort clip fires → phone notification arrives on judge's phone in real time</li>
+      <li><strong>Step 5 — Parent app:</strong> Show the daily report: topics discussed, mood arc chart, cry event log</li>
+    </ul>
+    <div class="big-quote" style="font-size:16px; padding: 12px 0;">Total demo time: <em>under 3 minutes.</em> Every feature visible. Every feature real.</div>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">Do NOT skip any step even if you're nervous. The cry alert moment and the parent voice moment are your two biggest wins. Practice this sequence 10+ times before the hackathon. The demo runs from the toy — never from a laptop screen shown to judges.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 12 -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-num">Slide 12</span>
+    <span class="slide-type type-close">Closing</span>
+    <span class="slide-name">Vision + Close</span>
+  </div>
+  <div class="slide-body">
+    <div class="s-title">This is Milo v1. Here's where we go next.</div>
+    <div class="two-col">
+      <div>
+        <div class="content-label">What we built (v1 — this hackathon)</div>
+        <ul class="bullet-list">
+          <li>Cry detection + push alert to parent</li>
+          <li>Sentiment-adaptive storytelling and Q&A</li>
+          <li>Parent voice recording + playback system</li>
+          <li>Real-time parent dashboard app</li>
+        </ul>
+      </div>
+      <div>
+        <div class="content-label">What comes next (v2 — post hackathon)</div>
+        <ul class="bullet-list">
+          <li>Raspberry Pi hardware — fully self-contained toy</li>
+          <li>Behaviour detection and daily report summaries via AI</li>
+          <li>Multi-language support — Hindi, Tamil, Telugu</li>
+          <li>Subscription model: ₹499/month for parent app premium</li>
+        </ul>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="big-quote">"Every child deserves a presence that <em>knows them</em>, <em>grows with them</em>, and <em>feels like home</em> — even when parents can't be there.<br>That's Milo."</div>
+    <div class="content-label" style="margin-top:16px;">Team + contact</div>
+    <ul class="bullet-list">
+      <li>Team name · Member names · Contact / GitHub link</li>
+      <li>Thank you — we're happy to take questions</li>
+    </ul>
+    <div class="speaker-notes">
+      <div class="notes-label">Speaker notes</div>
+      <div class="notes-text">End by picking up the toy. Hold it up. Say: "Milo isn't a hackathon project. It's a product we'd actually build. Because this problem is real, and no one has solved it yet." Then smile and stop talking. Don't fill the silence.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom note -->
+<div style="text-align:center; margin-top:32px; font-size:11px; color:var(--hint); line-height:1.8;">
+  12 slides · All content is copy-paste ready · Speaker notes = what you say, not what goes on the slide<br>
+  Suggested time: Slides 1–3 = 2 min · Slides 4–7 = 3 min · Slides 8–9 = 1.5 min · Slides 10–12 = 2 min + demo
+</div>
+
+</body>
+</html>

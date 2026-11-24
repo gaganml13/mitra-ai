@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mitra — Parent Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2d3e;
+    --accent: #7c6af7; --accent2: #f7826a; --accent3: #6af7c2;
+    --text: #e8eaf6; --muted: #6b7280; --sad: #f7826a;
+    --scared: #f7d96a; --lonely: #a78bfa; --cry: #f87171;
+    --excited: #34d399; --green: #22c55e; --red: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* ── Top bar ── */
+  .topbar { background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 24px; display: flex; align-items: center; gap: 14px; }
+  .topbar .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .topbar .sub  { color: var(--muted); font-size: .85rem; flex: 1; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+    border-radius: 999px; font-size: .78rem; font-weight: 600; }
+  .pill.online  { background: #14532d; color: var(--green); }
+  .pill.offline { background: #450a0a; color: var(--red); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  /* ── Layout ── */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .card.full { grid-column: 1 / -1; }
+  .card h2 { font-size: .9rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── Stat tiles ── */
+  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat { flex: 1; min-width: 110px; background: #12141e; border-radius: 10px;
+    padding: 14px 16px; text-align: center; }
+  .stat .val { font-size: 2rem; font-weight: 700; line-height: 1; }
+  .stat .lbl { font-size: .72rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing:.06em; }
+  .stat.sad    .val { color: var(--sad); }
+  .stat.scared .val { color: var(--scared); }
+  .stat.lonely .val { color: var(--lonely); }
+  .stat.cry    .val { color: var(--cry); }
+
+  /* ── Event list ── */
+  .event-list { max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .event-list::-webkit-scrollbar { width: 4px; }
+  .event-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .event-item { display: flex; align-items: flex-start; gap: 12px;
+    background: #12141e; border-radius: 8px; padding: 10px 14px; }
+  .event-item .badge { min-width: 72px; text-align: center; padding: 3px 8px;
+    border-radius: 6px; font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+  .badge.sad    { background: #451a0a; color: var(--sad); }
+  .badge.scared { background: #453a0a; color: var(--scared); }
+  .badge.lonely { background: #2e1d6b; color: var(--lonely); }
+  .badge.missing{ background: #3d1a4a; color: #d8a4f7; }
+  .badge.cry    { background: #450a0a; color: var(--cry); }
+  .badge.excited{ background: #0a3d1a; color: var(--excited); }
+  .badge.praise { background: #0a2d3a; color: #67e8f9; }
+  .badge.bedtime{ background: #1a1a3d; color: #a5b4fc; }
+  .event-item .detail { font-size: .82rem; flex: 1; line-height: 1.4; }
+  .event-item .ts { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+  .empty-msg { text-align: center; color: var(--muted); font-size: .85rem; padding: 30px 0; }
+
+  /* ── Timeline bar chart ── */
+  .timeline { display: flex; flex-direction: column; gap: 8px; }
+  .t-row { display: flex; align-items: center; gap: 10px; }
+  .t-label { width: 60px; font-size: .75rem; color: var(--muted); text-align: right; }
+  .t-bar-wrap { flex: 1; background: #12141e; border-radius: 4px; height: 18px; }
+  .t-bar { height: 100%; border-radius: 4px; transition: width .4s; min-width: 2px; }
+  .t-count { width: 24px; text-align: right; font-size: .75rem; color: var(--muted); }
+  .bar-sad { background: var(--sad); }
+  .bar-scared { background: var(--scared); }
+  .bar-lonely { background: var(--lonely); }
+  .bar-cry    { background: var(--cry); }
+
+  /* ── Rhymes & Topics ── */
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { background: #12141e; border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 12px; font-size: .78rem; color: var(--text); }
+
+  /* ── Voice Recorder ── */
+  .recorder-section { display: flex; flex-direction: column; gap: 16px; }
+  .emotion-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .etab { padding: 6px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: #12141e; color: var(--muted); cursor: pointer; font-size: .82rem;
+    transition: all .2s; }
+  .etab.active { border-color: var(--accent); color: var(--accent); background: #1e1b3d; }
+  .rec-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .btn { padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: .85rem; font-weight: 600; transition: all .15s; }
+  .btn-rec   { background: var(--red);    color: #fff; }
+  .btn-stop  { background: #374151;       color: #fff; display: none; }
+  .btn-save  { background: var(--accent); color: #fff; display: none; }
+  .btn-del   { background: #374151;       color: var(--red); padding: 4px 10px; font-size: .75rem; }
+  .btn:hover { opacity: .85; }
+  .rec-status { font-size: .82rem; color: var(--muted); }
+  .rec-timer  { font-size: 1.1rem; font-weight: 700; color: var(--accent2); display: none; }
+  audio { width: 100%; margin-top: 4px; }
+
+  /* Saved recordings list */
+  .rec-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .rec-item { background: #12141e; border-radius: 8px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px; }
+  .rec-item .rec-label { flex: 1; font-size: .82rem; }
+  .rec-item .rec-meta  { font-size: .72rem; color: var(--muted); }
+
+  /* ── Notification toast ── */
+  #toast { position: fixed; top: 20px; right: 20px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 10px; }
+  .toast-item { background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px; max-width: 320px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.5); animation: slideIn .3s ease; }
+  .toast-item.alert-sad    { border-left: 4px solid var(--sad); }
+  .toast-item.alert-scared { border-left: 4px solid var(--scared); }
+  .toast-item.alert-cry    { border-left: 4px solid var(--cry); }
+  .toast-item.alert-lonely { border-left: 4px solid var(--lonely); }
+  .toast-title { font-weight: 700; font-size: .9rem; }
+  .toast-body  { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+  @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Clear button */
+  .btn-clear { background: none; border: 1px solid var(--border); color: var(--muted);
+    padding: 4px 12px; border-radius: 6px; font-size: .75rem; cursor: pointer; }
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">🧸 Mitra</div>
+  <div class="sub">Parent Dashboard</div>
+  <span id="conn-pill" class="pill offline"><span class="dot"></span>Connecting…</span>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<div class="grid">
+
+  <!-- ── Stats row ── -->
+  <div class="card full">
+    <h2>📊 Today's Summary</h2>
+    <div class="stats-row">
+      <div class="stat sad">    <div class="val" id="cnt-sad">0</div>    <div class="lbl">Sad</div></div>
+      <div class="stat scared"> <div class="val" id="cnt-scared">0</div> <div class="lbl">Scared</div></div>
+      <div class="stat lonely"> <div class="val" id="cnt-lonely">0</div> <div class="lbl">Lonely</div></div>
+      <div class="stat cry">    <div class="val" id="cnt-cry">0</div>    <div class="lbl">Crying</div></div>
+      <div class="stat" style="--v:#34d399"> <div class="val" style="color:#34d399" id="cnt-rhymes">0</div><div class="lbl">Rhymes</div></div>
+      <div class="stat" style="--v:#67e8f9"> <div class="val" style="color:#67e8f9" id="cnt-topics">0</div><div class="lbl">Topics</div></div>
+    </div>
+  </div>
+
+  <!-- ── Event log ── -->
+  <div class="card">
+    <h2>🔔 Emotion Events
+      <button class="btn-clear" onclick="clearEvents()">Clear</button>
+    </h2>
+    <div class="event-list" id="event-list">
+      <div class="empty-msg">No events yet — start Mitra on the Pi!</div>
+    </div>
+  </div>
+
+  <!-- ── Emotion timeline ── -->
+  <div class="card">
+    <h2>📈 Emotion Breakdown</h2>
+    <div class="timeline" id="timeline">
+      <div class="t-row"><div class="t-label">Sad</div>    <div class="t-bar-wrap"><div class="t-bar bar-sad"    id="bar-sad"    style="width:0%"></div></div><div class="t-count" id="tc-sad">0</div></div>
+      <div class="t-row"><div class="t-label">Scared</div> <div class="t-bar-wrap"><div class="t-bar bar-scared" id="bar-scared" style="width:0%"></div></div><div class="t-count" id="tc-scared">0</div></div>
+      <div class="t-row"><div class="t-label">Lonely</div> <div class="t-bar-wrap"><div class="t-bar bar-lonely" id="bar-lonely" style="width:0%"></div></div><div class="t-count" id="tc-lonely">0</div></div>
+      <div class="t-row"><div class="t-label">Crying</div> <div class="t-bar-wrap"><div class="t-bar bar-cry"    id="bar-cry"    style="width:0%"></div></div><div class="t-count" id="tc-cry">0</div></div>
+    </div>
+  </div>
+
+  <!-- ── Rhymes heard ── -->
+  <div class="card">
+    <h2>🎵 Rhymes Heard</h2>
+    <div class="tag-list" id="rhymes-list">
+      <span class="empty-msg">None yet</span>
+    </div>
+  </div>
+
+  <!-- ── Topics explored ── -->
+  <div class="card">
+    <h2>🧠 Topics Explored</h2>
+    <div class="tag-list" id="topics-list">
+      <span class="empty-msg">None yet</span>
+    </div>
+  </div>
+
+  <!-- ── Parent Voice Recorder ── -->
+  <div class="card full">
+    <h2>🎤 Record Your Voice — Mitra will play it when your child needs comfort</h2>
+    <div class="recorder-section">
+
+      <!-- Emotion selector -->
+      <div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:8px;">
+          Choose which emotion this recording is for:
+        </div>
+        <div class="emotion-tabs">
+          <div class="etab active" data-emotion="comfort"  onclick="selectEmotion(this)">😢 Sad / Comfort</div>
+          <div class="etab"        data-emotion="scared"   onclick="selectEmotion(this)">😨 Scared</div>
+          <div class="etab"        data-emotion="lonely"   onclick="selectEmotion(this)">🥺 Lonely</div>
+          <div class="etab"        data-emotion="missing"  onclick="selectEmotion(this)">💕 Missing Mummy/Daddy</div>
+          <div class="etab"        data-emotion="bedtime"  onclick="selectEmotion(this)">🌙 Bedtime</div>
+          <div class="etab"        data-emotion="praise"   onclick="selectEmotion(this)">🌟 Praise / Well done</div>
+          <div class="etab"        data-emotion="greet"    onclick="selectEmotion(this)">👋 Morning Greeting</div>
+        </div>
+      </div>
+
+      <!-- Recorder controls -->
+      <div class="rec-controls">
+        <button class="btn btn-rec"  id="btn-rec"  onclick="startRecording()">⏺ Start Recording</button>
+        <button class="btn btn-stop" id="btn-stop" onclick="stopRecording()">⏹ Stop</button>
+        <button class="btn btn-save" id="btn-save" onclick="saveRecording()">💾 Save to Mitra</button>
+        <span class="rec-status" id="rec-status">Press Start to record a message for your child.</span>
+        <span class="rec-timer"  id="rec-timer">0:00</span>
+      </div>
+
+      <!-- Playback preview -->
+      <div id="preview-wrap" style="display:none">
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:4px;">Preview your recording:</div>
+        <audio id="preview-audio" controls></audio>
+      </div>
+
+      <!-- Saved recordings -->
+      <div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;margin-top:4px;">
+          Saved recordings on Mitra:
+        </div>
+        <div class="rec-list" id="rec-list">
+          <div class="empty-msg">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /grid -->
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+const BASE = window.location.origin;
+let events = [], rhymes = [], topics = [];
+let selectedEmotion = "comfort";
+
+// ── SSE connection ──────────────────────────────────────────────────────
+function connectSSE() {
+  const src = new EventSource(BASE + "/api/stream");
+  const pill = document.getElementById("conn-pill");
+
+  src.addEventListener("connected", () => {
+    pill.className = "pill online";
+    pill.innerHTML = '<span class="dot"></span>Live';
+  });
+
+  src.addEventListener("new_event", e => {
+    const ev = JSON.parse(e.data);
+    events.unshift(ev);
+    renderEvents();
+    updateStats();
+    if (["sad","scared","cry","lonely","missing"].includes(ev.type)) {
+      showToast(ev);
+    }
+  });
+
+  src.addEventListener("recording_added",   () => loadRecordings());
+  src.addEventListener("recording_deleted", () => loadRecordings());
+
+  src.onerror = () => {
+    pill.className = "pill offline";
+    pill.innerHTML = '<span class="dot"></span>Offline';
+    setTimeout(connectSSE, 4000);
+  };
+}
+
+// ── Load initial data ───────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const r = await fetch(BASE + "/api/data");
+    const d = await r.json();
+    events = (d.events  || []).reverse();   // newest first
+    rhymes  = d.rhymes  || [];
+    topics  = d.topics  || [];
+    renderEvents();
+    renderRhymes();
+    renderTopics();
+    updateStats();
+  } catch(e) { /* server not ready yet */ }
+}
+
+// ── Render events ────────────────────────────────────────────────────────
+function renderEvents() {
+  const el = document.getElementById("event-list");
+  if (!events.length) {
+    el.innerHTML = '<div class="empty-msg">No events yet</div>';
+    return;
+  }
+  el.innerHTML = events.slice(0, 100).map(ev => {
+    const time = ev.time ? ev.time.split(" ")[1] || ev.time : "—";
+    const detail = ev.detail || "";
+    return `<div class="event-item">
+      <span class="badge ${ev.type}">${ev.type}</span>
+      <span class="detail">${detail || emojiFor(ev.type) + " " + labelFor(ev.type)}</span>
+      <span class="ts">${time}</span>
+    </div>`;
+  }).join("");
+}
+
+function emojiFor(t) {
+  return {sad:"😢",scared:"😨",lonely:"🥺",missing:"💕",cry:"😭",
+          excited:"🎉",praise:"⭐",bedtime:"🌙"}[t] || "💬";
+}
+function labelFor(t) {
+  return {sad:"Child seemed sad",scared:"Child seemed scared",
+    lonely:"Child felt lonely",missing:"Missing parent",
+    cry:"Crying detected",excited:"Child was excited",
+    praise:"Child praised",bedtime:"Bedtime mood"}[t] || t;
+}
+
+// ── Update stats ─────────────────────────────────────────────────────────
+function updateStats() {
+  const cnt = (t) => events.filter(e => e.type === t).length;
+  const TYPES = ["sad","scared","lonely","cry"];
+  const maxVal = Math.max(1, ...TYPES.map(cnt));
+
+  TYPES.forEach(t => {
+    const n = cnt(t);
+    const el = document.getElementById("cnt-" + t);
+    if (el) el.textContent = n;
+    const bar  = document.getElementById("bar-" + t);
+    const tcel = document.getElementById("tc-"  + t);
+    if (bar)  bar.style.width = Math.round(n / maxVal * 100) + "%";
+    if (tcel) tcel.textContent = n;
+  });
+
+  const cntRhymes  = document.getElementById("cnt-rhymes");
+  const cntTopics  = document.getElementById("cnt-topics");
+  if (cntRhymes) cntRhymes.textContent = rhymes.length;
+  if (cntTopics) cntTopics.textContent = topics.length;
+}
+
+// ── Render rhymes & topics ────────────────────────────────────────────────
+function renderRhymes() {
+  const el = document.getElementById("rhymes-list");
+  if (!rhymes.length) { el.innerHTML = '<span class="empty-msg">None yet</span>'; return; }
+  const unique = [...new Set(rhymes.map(r => r.name))];
+  el.innerHTML = unique.map(n => `<span class="tag">🎵 ${n}</span>`).join("");
+}
+
+function renderTopics() {
+  const el = document.getElementById("topics-list");
+  if (!topics.length) { el.innerHTML = '<span class="empty-msg">None yet</span>'; return; }
+  const unique = [...new Set(topics.map(t => t.topic))].slice(-40);
+  el.innerHTML = unique.map(n => `<span class="tag">💬 ${n}</span>`).join("");
+}
+
+// ── Toast notifications ───────────────────────────────────────────────────
+function showToast(ev) {
+  const container = document.getElementById("toast");
+  const div = document.createElement("div");
+  div.className = `toast-item alert-${ev.type}`;
+  const time = ev.time ? ev.time.split(" ")[1] || ev.time : "";
+  div.innerHTML = `<div class="toast-title">${emojiFor(ev.type)} ${labelFor(ev.type)}</div>
+    <div class="toast-body">${time ? "at " + time : ""}</div>`;
+  container.appendChild(div);
+  setTimeout(() => div.remove(), 7000);
+}
+
+// ── Clear events ──────────────────────────────────────────────────────────
+function clearEvents() {
+  events = [];
+  renderEvents();
+  updateStats();
+}
+
+// ── Emotion tab selector ──────────────────────────────────────────────────
+function selectEmotion(el) {
+  document.querySelectorAll(".etab").forEach(e => e.classList.remove("active"));
+  el.classList.add("active");
+  selectedEmotion = el.dataset.emotion;
+}
+
+// ── Voice Recorder ────────────────────────────────────────────────────────
+let mediaRec = null, audioChunks = [], timerInterval = null, recStart = 0;
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks  = [];
+    mediaRec     = new MediaRecorder(stream, { mimeType: "audio/webm" });
+
+    mediaRec.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRec.onstop = buildPreview;
+    mediaRec.start(100);
+
+    recStart = Date.now();
+    document.getElementById("btn-rec").style.display  = "none";
+    document.getElementById("btn-stop").style.display = "inline-flex";
+    document.getElementById("btn-save").style.display = "none";
+    document.getElementById("preview-wrap").style.display = "none";
+    document.getElementById("rec-status").textContent = "Recording…";
+    document.getElementById("rec-timer").style.display = "inline";
+
+    timerInterval = setInterval(() => {
+      const s = Math.floor((Date.now() - recStart) / 1000);
+      const m = Math.floor(s / 60);
+      document.getElementById("rec-timer").textContent =
+        m + ":" + String(s % 60).padStart(2, "0");
+    }, 500);
+  } catch(err) {
+    alert("Microphone access denied. Please allow mic access in browser settings.");
+  }
+}
+
+function stopRecording() {
+  if (mediaRec && mediaRec.state !== "inactive") mediaRec.stop();
+  clearInterval(timerInterval);
+  document.getElementById("btn-stop").style.display  = "none";
+  document.getElementById("btn-rec").style.display   = "inline-flex";
+  document.getElementById("rec-timer").style.display = "none";
+  document.getElementById("rec-status").textContent  = "Recording stopped. Preview or save below.";
+}
+
+function buildPreview() {
+  const blob = new Blob(audioChunks, { type: "audio/webm" });
+  const url  = URL.createObjectURL(blob);
+  const audio = document.getElementById("preview-audio");
+  audio.src = url;
+  document.getElementById("preview-wrap").style.display = "block";
+  document.getElementById("btn-save").style.display     = "inline-flex";
+}
+
+async function saveRecording() {
+  if (!audioChunks.length) return;
+
+  // Convert webm → wav via AudioContext before sending
+  const blob  = new Blob(audioChunks, { type: "audio/webm" });
+  const ab    = await blob.arrayBuffer();
+  const ctx   = new AudioContext({ sampleRate: 16000 });
+  const buf   = await ctx.decodeAudioData(ab);
+  const wav   = encodeWAV(buf);
+
+  const formData = new FormData();
+  formData.append("emotion", selectedEmotion);
+  formData.append("audio",   new Blob([wav], { type: "audio/wav" }), "recording.wav");
+
+  try {
+    const r = await fetch(BASE + "/api/upload_voice", { method: "POST", body: formData });
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById("rec-status").textContent = `✅ Saved as ${d.saved_as}`;
+      document.getElementById("btn-save").style.display = "none";
+      audioChunks = [];
+    } else {
+      document.getElementById("rec-status").textContent = "❌ Save failed: " + (d.error || "unknown");
+    }
+  } catch(e) {
+    document.getElementById("rec-status").textContent = "❌ Could not reach Mitra server.";
+  }
+}
+
+// Simple PCM WAV encoder
+function encodeWAV(audioBuffer) {
+  const numCh     = 1;
+  const sr        = audioBuffer.sampleRate;
+  const pcm       = audioBuffer.getChannelData(0);
+  const samples   = new Int16Array(pcm.length);
+  for (let i = 0; i < pcm.length; i++) {
+    let s = Math.max(-1, Math.min(1, pcm[i]));
+    samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+  const buffer    = new ArrayBuffer(44 + samples.byteLength);
+  const view      = new DataView(buffer);
+  function ws(off, str) { for(let i=0;i<str.length;i++) view.setUint8(off+i, str.charCodeAt(i)); }
+  function wu32(off,v)  { view.setUint32(off, v, true); }
+  function wu16(off,v)  { view.setUint16(off, v, true); }
+  ws(0,"RIFF"); wu32(4, 36+samples.byteLength); ws(8,"WAVE");
+  ws(12,"fmt "); wu32(16,16); wu16(20,1); wu16(22,numCh);
+  wu32(24,sr); wu32(28,sr*numCh*2); wu16(32,numCh*2); wu16(34,16);
+  ws(36,"data"); wu32(40, samples.byteLength);
+  new Int16Array(buffer, 44).set(samples);
+  return buffer;
+}
+
+// ── Load saved recordings ─────────────────────────────────────────────────
+async function loadRecordings() {
+  try {
+    const r  = await fetch(BASE + "/api/recordings");
+    const recs = await r.json();
+    const el = document.getElementById("rec-list");
+    if (!recs.length) {
+      el.innerHTML = '<div class="empty-msg">No recordings saved yet — record your first message above!</div>';
+      return;
+    }
+    el.innerHTML = recs.map(rec => `
+      <div class="rec-item">
+        <div style="min-width:76px">
+          <span class="badge ${rec.label.split('_')[0]}">${rec.label.split(' ')[0]}</span>
+        </div>
+        <div class="rec-label">${rec.filename}</div>
+        <div class="rec-meta">${rec.size_kb}KB · ${rec.modified}</div>
+        <audio src="${BASE}/api/play_voice/${rec.filename}" controls style="width:140px;height:28px"></audio>
+        <button class="btn btn-del" onclick="deleteRec('${rec.filename}')">🗑</button>
+      </div>`).join("");
+  } catch(e) { /* ignore */ }
+}
+
+async function deleteRec(filename) {
+  if (!confirm(`Delete ${filename}?`)) return;
+  await fetch(BASE + "/api/delete_voice/" + filename, { method: "DELETE" });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadData();
+loadRecordings();
+connectSSE();
+
+// Refresh data every 30s as backup
+setInterval(() => { loadData(); loadRecordings(); }, 30000);
+</script>
+</body>
+</html>

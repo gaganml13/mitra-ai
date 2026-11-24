@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mitra — Parent Voice Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg:        #0a0d14;
+    --surface:   #111520;
+    --card:      #161c2e;
+    --border:    #1e2840;
+    --teal:      #00d4b8;
+    --teal-dim:  #00967f;
+    --coral:     #ff6b6b;
+    --amber:     #ffb830;
+    --text:      #e8eaf2;
+    --muted:     #6b7494;
+    --radius:    14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 32px 28px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-dot {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: conic-gradient(var(--teal) 0%, var(--amber) 60%, var(--coral) 100%);
+    display: grid; place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    animation: spin-slow 8s linear infinite;
+  }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+  header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.5px; }
+  header p  { font-size: .78rem; color: var(--muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: .65rem;
+    color: var(--teal);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 28px 28px 10px;
+  }
+
+  /* ── PHRASE CARDS ── */
+  .phrase-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 16px;
+  }
+
+  .phrase-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .phrase-card.has-recording { border-color: var(--teal-dim); }
+  .phrase-card.recording-active { border-color: var(--coral); }
+
+  .phrase-tag {
+    display: inline-block;
+    font-size: .6rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-bottom: 8px;
+  }
+  .phrase-tag.comfort  { color: var(--teal);  background: rgba(0,212,184,.12); }
+  .phrase-tag.bedtime  { color: var(--amber); background: rgba(255,184,48,.12); }
+  .phrase-tag.praise   { color: #a78bfa;      background: rgba(167,139,250,.12); }
+  .phrase-tag.greeting { color: var(--coral); background: rgba(255,107,107,.12); }
+
+  .phrase-text {
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+
+  .phrase-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    border: none;
+    border-radius: 8px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: .75rem;
+    cursor: pointer;
+    padding: 8px 14px;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-record {
+    background: rgba(255,107,107,.15);
+    color: var(--coral);
+    border: 1px solid rgba(255,107,107,.3);
+  }
+  .btn-record:hover { background: rgba(255,107,107,.25); }
+  .btn-record.active {
+    background: var(--coral);
+    color: #fff;
+    animation: pulse-btn .8s ease infinite alternate;
+  }
+  @keyframes pulse-btn { from { opacity: 1; } to { opacity: .75; } }
+
+  .btn-play {
+    background: rgba(0,212,184,.12);
+    color: var(--teal);
+    border: 1px solid rgba(0,212,184,.25);
+  }
+  .btn-play:hover { background: rgba(0,212,184,.22); }
+  .btn-play:disabled { opacity: .3; cursor: not-allowed; }
+
+  .btn-delete {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+  }
+  .btn-delete:hover { color: var(--coral); border-color: var(--coral); }
+  .btn-delete:disabled { opacity: .2; cursor: not-allowed; }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .status-dot.recorded { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  .status-dot.recording { background: var(--coral); animation: blink .5s ease infinite alternate; }
+  @keyframes blink { to { opacity: .3; } }
+
+  /* ── WAVEFORM ── */
+  .waveform-wrap {
+    margin-top: 10px;
+    height: 36px;
+    display: none;
+    align-items: center;
+    gap: 1.5px;
+    overflow: hidden;
+  }
+  .waveform-wrap.visible { display: flex; }
+  .waveform-bar {
+    width: 3px;
+    border-radius: 2px;
+    background: var(--teal-dim);
+    height: 4px;
+    transition: height .1s;
+  }
+
+  /* ── EXPORT PANEL ── */
+  .export-panel {
+    margin: 22px 16px 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+  }
+  .export-title {
+    font-size: .85rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .export-desc {
+    font-size: .75rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .btn-export {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dim));
+    color: #000;
+    font-weight: 700;
+    font-size: .8rem;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 22px;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    width: 100%;
+    transition: opacity .15s;
+  }
+  .btn-export:hover { opacity: .88; }
+  .btn-export:disabled { opacity: .3; cursor: not-allowed; }
+
+  .progress-bar-wrap {
+    margin-top: 14px;
+    background: var(--border);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 6px;
+    width: 0%;
+    transition: width .3s;
+  }
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: .65rem;
+    color: var(--muted);
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--teal);
+    color: #000;
+    font-weight: 700;
+    font-size: .78rem;
+    font-family: 'Space Mono', monospace;
+    padding: 10px 20px;
+    border-radius: 40px;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── INSTRUCTIONS STRIP ── */
+  .instructions {
+    margin: 0 16px 16px;
+    padding: 14px 16px;
+    background: rgba(0,212,184,.06);
+    border: 1px solid rgba(0,212,184,.18);
+    border-radius: var(--radius);
+    font-size: .75rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .instructions strong { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot">🎙️</div>
+  <div>
+    <h1>Parent Voice Studio</h1>
+    <p>for Mitra · comfort layer</p>
+  </div>
+</header>
+
+<div class="section-label">How it works</div>
+<div class="instructions">
+  <strong>Record</strong> each phrase below in your own voice. Mitra will play these automatically when your child seems <strong>sad, scared, or misses you</strong>. Tap 🔴 to record, tap again to stop. Then <strong>export</strong> to save all files to disk.
+</div>
+
+<div class="section-label">Comfort Phrases</div>
+<div class="phrase-grid" id="phraseGrid"></div>
+
+<div class="export-panel">
+  <div class="export-title">💾 Save to Mitra</div>
+  <div class="export-desc">Exports all recordings as individual <code>.wav</code> files into a <code>parent_voice/</code> folder. Place that folder next to <code>mitra.py</code>.</div>
+  <button class="btn-export" id="exportBtn" disabled>Export All Recordings</button>
+  <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label" id="progressLabel"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── PHRASE DATA ─────────────────────────────────────────
+const PHRASES = [
+  // COMFORT
+  { id:"comfort_1", tag:"comfort",  text:"Hey sweetheart, it's okay. I'm right here with you, always." },
+  { id:"comfort_2", tag:"comfort",  text:"You are so loved. More than all the stars in the sky." },
+  { id:"comfort_3", tag:"comfort",  text:"It's okay to feel sad. I feel it too when I'm away from you." },
+  { id:"comfort_4", tag:"comfort",  text:"You are so brave. I'm proud of you every single day." },
+  { id:"comfort_5", tag:"comfort",  text:"I'll be back before you know it. And I'll give you the biggest hug!" },
+  // SCARED
+  { id:"scared_1",  tag:"comfort",  text:"There's nothing to be scared of. I'm always watching over you." },
+  { id:"scared_2",  tag:"comfort",  text:"You're safe. You're warm. You're loved. Everything is okay." },
+  // BEDTIME
+  { id:"bedtime_1", tag:"bedtime",  text:"Time to sleep, little one. Dream of something magical tonight." },
+  { id:"bedtime_2", tag:"bedtime",  text:"Close your eyes. I'm sending you a big goodnight kiss right now." },
+  { id:"bedtime_3", tag:"bedtime",  text:"Sweet dreams, my love. I'll see you when you wake up." },
+  // PRAISE
+  { id:"praise_1",  tag:"praise",   text:"You did it! I knew you could. That's my amazing kid!" },
+  { id:"praise_2",  tag:"praise",   text:"You make me so so SO proud. Every day." },
+  // GREETING
+  { id:"greet_1",   tag:"greeting", text:"Good morning, sunshine! Today is going to be a great day!" },
+  { id:"greet_2",   tag:"greeting", text:"Hi baby! Miss you so much. Be good and have so much fun!" },
+];
+
+// ── STATE ───────────────────────────────────────────────
+const recordings = {}; // id → { blob, url }
+let activeRecorder = null;
+let activeId = null;
+let animInterval = null;
+
+// ── RENDER ──────────────────────────────────────────────
+const grid = document.getElementById('phraseGrid');
+
+PHRASES.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'phrase-card';
+  card.id = `card-${p.id}`;
+  card.innerHTML = `
+    <span class="phrase-tag ${p.tag}">${p.tag}</span>
+    <div class="phrase-text">${p.text}</div>
+    <div class="phrase-actions">
+      <div class="status-dot" id="dot-${p.id}"></div>
+      <button class="btn btn-record" id="recBtn-${p.id}" onclick="toggleRecord('${p.id}')">
+        <span>⏺</span> Record
+      </button>
+      <button class="btn btn-play" id="playBtn-${p.id}" disabled onclick="playRecording('${p.id}')">
+        <span>▶</span> Play
+      </button>
+      <button class="btn btn-delete" id="delBtn-${p.id}" disabled onclick="deleteRecording('${p.id}')">✕</button>
+    </div>
+    <div class="waveform-wrap" id="wave-${p.id}">
+      ${Array.from({length:40}, (_,i)=>`<div class="waveform-bar" id="bar-${p.id}-${i}"></div>`).join('')}
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+// ── RECORD ──────────────────────────────────────────────
+async function toggleRecord(id) {
+  if (activeRecorder && activeId === id) {
+    // Stop recording
+    activeRecorder.stop();
+    return;
+  }
+  if (activeRecorder) {
+    activeRecorder.stop();
+    await new Promise(r => setTimeout(r, 200));
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+    const chunks = [];
+
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const wavBlob = await encodeToWav(blob);
+      const url = URL.createObjectURL(wavBlob);
+      if (recordings[id]) URL.revokeObjectURL(recordings[id].url);
+      recordings[id] = { blob: wavBlob, url };
+      setRecordedUI(id);
+      stopWaveAnim(id);
+      updateExportBtn();
+      showToast('✓ Recorded!');
+      activeRecorder = null;
+      activeId = null;
+    };
+
+    recorder.start();
+    activeRecorder = recorder;
+    activeId = id;
+    setRecordingUI(id);
+    startWaveAnim(id);
+
+  } catch (e) {
+    showToast('⚠ Microphone access denied');
+    console.error(e);
+  }
+}
+
+function setRecordingUI(id) {
+  document.getElementById(`recBtn-${id}`).classList.add('active');
+  document.getElementById(`recBtn-${id}`).innerHTML = '<span>⏹</span> Stop';
+  document.getElementById(`dot-${id}`).classList.add('recording');
+  document.getElementById(`card-${id}`).classList.add('recording-active');
+  document.getElementById(`wave-${id}`).classList.add('visible');
+}
+
+function setRecordedUI(id) {
+  const recBtn  = document.getElementById(`recBtn-${id}`);
+  const playBtn = document.getElementById(`playBtn-${id}`);
+  const delBtn  = document.getElementById(`delBtn-${id}`);
+  const dot     = document.getElementById(`dot-${id}`);
+  const card    = document.getElementById(`card-${id}`);
+  recBtn.classList.remove('active');
+  recBtn.innerHTML = '<span>⏺</span> Re-record';
+  playBtn.disabled = false;
+  delBtn.disabled = false;
+  dot.classList.remove('recording');
+  dot.classList.add('recorded');
+  card.classList.remove('recording-active');
+  card.classList.add('has-recording');
+}
+
+function deleteRecording(id) {
+  if (recordings[id]) {
+    URL.revokeObjectURL(recordings[id].url);
+    delete recordings[id];
+  }
+  document.getElementById(`recBtn-${id}`).innerHTML = '<span>⏺</span> Record';
+  document.getElementById(`playBtn-${id}`).disabled = true;
+  document.getElementById(`delBtn-${id}`).disabled = true;
+  document.getElementById(`dot-${id}`).className = 'status-dot';
+  document.getElementById(`card-${id}`).classList.remove('has-recording');
+  document.getElementById(`wave-${id}`).classList.remove('visible');
+  updateExportBtn();
+}
+
+function playRecording(id) {
+  if (!recordings[id]) return;
+  new Audio(recordings[id].url).play();
+}
+
+// ── WAVEFORM ANIM ────────────────────────────────────────
+function startWaveAnim(id) {
+  animInterval = setInterval(() => {
+    for (let i = 0; i < 40; i++) {
+      const bar = document.getElementById(`bar-${id}-${i}`);
+      if (bar) bar.style.height = (4 + Math.random() * 28) + 'px';
+    }
+  }, 80);
+}
+function stopWaveAnim(id) {
+  clearInterval(animInterval);
+  for (let i = 0; i < 40; i++) {
+    const bar = document.getElementById(`bar-${id}-${i}`);
+    if (bar) bar.style.height = '4px';
+  }
+}
+
+// ── WAV ENCODE ───────────────────────────────────────────
+async function encodeToWav(blob) {
+  const ctx = new AudioContext();
+  const arrayBuf = await blob.arrayBuffer();
+  const audioBuf = await ctx.decodeAudioData(arrayBuf);
+  const numCh = 1;
+  const sr = 16000;
+  const offCtx = new OfflineAudioContext(numCh, audioBuf.duration * sr, sr);
+  const src = offCtx.createBufferSource();
+  src.buffer = audioBuf;
+  src.connect(offCtx.destination);
+  src.start();
+  const rendered = await offCtx.startRendering();
+  const pcm = rendered.getChannelData(0);
+  const buf = new ArrayBuffer(44 + pcm.length * 2);
+  const view = new DataView(buf);
+  const writeStr = (o, s) => { for (let i=0;i<s.length;i++) view.setUint8(o+i, s.charCodeAt(i)); };
+  const len = pcm.length * 2;
+  writeStr(0,'RIFF'); view.setUint32(4,36+len,true); writeStr(8,'WAVE');
+  writeStr(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true);
+  view.setUint16(22,1,true); view.setUint32(24,sr,true); view.setUint32(28,sr*2,true);
+  view.setUint16(32,2,true); view.setUint16(34,16,true);
+  writeStr(36,'data'); view.setUint32(40,len,true);
+  let offset = 44;
+  for (let i=0;i<pcm.length;i++,offset+=2) {
+    const s = Math.max(-1,Math.min(1,pcm[i]));
+    view.setInt16(offset, s < 0 ? s*0x8000 : s*0x7FFF, true);
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+// ── EXPORT ───────────────────────────────────────────────
+function updateExportBtn() {
+  const count = Object.keys(recordings).length;
+  const btn = document.getElementById('exportBtn');
+  btn.disabled = count === 0;
+  btn.textContent = count === 0 ? 'Export All Recordings' : `Export ${count} Recording${count>1?'s':''}`;
+}
+
+async function exportAll() {
+  const ids = Object.keys(recordings);
+  if (ids.length === 0) return;
+
+  document.getElementById('progressWrap').style.display = 'block';
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    const { blob } = recordings[id];
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `parent_voice_${id}.wav`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    await new Promise(r => setTimeout(r, 300));
+
+    fill.style.width = ((i+1)/ids.length*100) + '%';
+    label.textContent = `${i+1} / ${ids.length} saved`;
+  }
+
+  showToast(`✓ ${ids.length} files saved! Move to parent_voice/ folder.`);
+  setTimeout(() => {
+    document.getElementById('progressWrap').style.display = 'none';
+    fill.style.width = '0%';
+    label.textContent = '';
+  }, 3000);
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportAll);
+
+// ── TOAST ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
