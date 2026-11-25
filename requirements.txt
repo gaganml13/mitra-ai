@@ -1,0 +1,23 @@
+# Mitra hub (mitra_server.py + parent_dashboard.html)
+# Install:  python -m pip install -r requirements.txt
+Flask>=3.1
+flask-cors>=6.0
+Werkzeug>=3.1
+requests>=2.32
+groq>=1.0
+edge-tts>=7.0
+numpy>=2.0
+# Cry model (cry_model.pkl / cry_scaler.pkl were saved with scikit-learn 1.8+)
+scikit-learn>=1.8
+joblib>=1.4
+librosa>=0.11
+soundfile>=0.12
+# Live Screening vision (falls back to Haar cascades if mediapipe is unavailable)
+mediapipe>=0.10.20
+opencv-contrib-python>=4.10
+pillow>=10.0
+# QR codes for ntfy / LAN links
+segno>=1.6
+
+# The voice companion (mitra_ultimate.py) additionally needs:
+#   sounddevice, openai-whisper, pyttsx3

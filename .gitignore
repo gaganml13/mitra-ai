@@ -50,3 +50,15 @@ Thumbs.db
 
 .env
 .env.*
+!.env.example
+
+# Mitra runtime data (phone numbers, child transcripts, recordings)
+mitra_settings.json
+mitra_notifications.json
+mitra_transcript.json
+captures/
+parent_messages/
+*.tmp
+mitra_references.json
+# MediaPipe task models (auto-downloaded by mitra_server.py)
+models/
