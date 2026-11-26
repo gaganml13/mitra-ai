@@ -19,21 +19,33 @@ if (-not (Test-PyImports $py "flask, flask_cors, requests")) {
     exit 1
 }
 
-Write-Host "[1/3] Starting Mitra hub on port 5000 ($py)..." -ForegroundColor Yellow
-$serverProcess = Start-Process $py -ArgumentList "mitra_server.py" -PassThru -WindowStyle Minimized
-
-Write-Host "       Waiting for the hub to answer /ping ..." -ForegroundColor Yellow
-$ready = $false
-for ($i = 0; $i -lt 40; $i++) {
-    if ($serverProcess.HasExited) { break }
+function Test-Hub {
     try {
         Invoke-WebRequest -Uri "http://127.0.0.1:5000/ping" -UseBasicParsing -TimeoutSec 1 | Out-Null
-        $ready = $true; break
-    } catch { Start-Sleep -Milliseconds 750 }
+        return $true
+    } catch { return $false }
 }
-if (-not $ready) {
-    Write-Host "The hub did not start. Run '$py mitra_server.py' directly to see the error." -ForegroundColor Red
-    exit 1
+
+if (Test-Hub) {
+    # A hub is already running: reuse it. Starting a second one would only fail with "port in use".
+    Write-Host "[1/3] Mitra hub already running on port 5000 - reusing it." -ForegroundColor Yellow
+} else {
+    Write-Host "[1/3] Starting Mitra hub on port 5000 ($py)..." -ForegroundColor Yellow
+    # Own window, independent of this script: the dashboard keeps working even if the
+    # voice companion below exits. Close the "Mitra hub" window to stop the hub.
+    $serverProcess = Start-Process $py -ArgumentList "mitra_server.py" -PassThru -WindowStyle Minimized
+
+    Write-Host "       Waiting for the hub to answer /ping ..." -ForegroundColor Yellow
+    $ready = $false
+    for ($i = 0; $i -lt 40; $i++) {
+        if ($serverProcess.HasExited) { break }
+        if (Test-Hub) { $ready = $true; break }
+        Start-Sleep -Milliseconds 750
+    }
+    if (-not $ready) {
+        Write-Host "The hub did not start. Run '$py mitra_server.py' directly to see the error." -ForegroundColor Red
+        exit 1
+    }
 }
 
 Write-Host "[2/3] Opening dashboard: http://localhost:5000" -ForegroundColor Yellow
@@ -51,10 +63,9 @@ Write-Host ""
 $cpy = $py
 if (-not (Test-PyImports $cpy "whisper, sounddevice")) { $cpy = "python" }
 
-try {
-    & $cpy mitra_ultimate.py
-} finally {
-    if ($serverProcess -and -not $serverProcess.HasExited) {
-        Stop-Process -Id $serverProcess.Id -Force -ErrorAction SilentlyContinue
-    }
-}
+& $cpy mitra_ultimate.py
+
+# The hub is deliberately left running so the open dashboard tab keeps working.
+Write-Host ""
+Write-Host "Voice companion stopped. The dashboard is still live at http://localhost:5000" -ForegroundColor Cyan
+Write-Host "(close the minimized Mitra hub window to stop it)." -ForegroundColor Cyan

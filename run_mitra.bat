@@ -19,6 +19,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
+rem Reuse a hub that is already running; a second one would only fail with "port in use"
+curl -s -o nul --max-time 1 http://127.0.0.1:5000/ping && (
+    echo [1/3] Mitra hub already running on port 5000 - reusing it.
+    goto ready
+)
+
 echo [1/3] Starting Mitra hub on port 5000 (%PY%)...
 start "Mitra Server" cmd /k ""%PY%" mitra_server.py"
 
