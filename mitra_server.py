@@ -112,6 +112,87 @@ def _p(*parts):
     return os.path.join(BASE_DIR, *parts)
 
 
+# ── Secrets at rest: Windows DPAPI ──────────────────────────────
+# Every provider key in .env is stored as DPAPI:<base64>. CryptProtectData ties the ciphertext
+# to the current Windows user account (and to this app's entropy), so a copied .env is useless
+# on another account or machine. Decrypted values live only in this process (_secrets_cache) —
+# they are never put back into os.environ (which child processes would inherit) or onto disk.
+VAULT_KEYS = ("GROQ_API_KEY", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER",
+              "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS",
+              "PARENT_EMAIL", "NTFY_TOKEN")
+VAULT_PREFIX = "DPAPI:"
+
+
+class SecretVault:
+    """Self-contained DPAPI wrapper (ctypes, no packages). available is False off Windows."""
+    _ENTROPY = b"mitra-hub/secret-vault/v1"
+    _UI_FORBIDDEN = 0x1
+
+    def __init__(self):
+        self.available, self.reason = False, None
+        if sys.platform != "win32":
+            self.reason = "Windows DPAPI is only available on Windows"
+            return
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            class DATA_BLOB(ctypes.Structure):
+                _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_char))]
+
+            self._ct, self._blob = ctypes, DATA_BLOB
+            self._crypt32, self._kernel32 = ctypes.windll.crypt32, ctypes.windll.kernel32
+            ptr = ctypes.POINTER(DATA_BLOB)
+            self._crypt32.CryptProtectData.argtypes = [ptr, wintypes.LPCWSTR, ptr, ctypes.c_void_p,
+                                                       ctypes.c_void_p, wintypes.DWORD, ptr]
+            self._crypt32.CryptUnprotectData.argtypes = [ptr, ctypes.c_void_p, ptr, ctypes.c_void_p,
+                                                         ctypes.c_void_p, wintypes.DWORD, ptr]
+            self._kernel32.LocalFree.argtypes = [ctypes.c_void_p]
+            self.available = True
+        except (ImportError, AttributeError, OSError) as e:
+            self.reason = f"DPAPI unavailable: {e}"
+
+    def _in(self, data):
+        buf = self._ct.create_string_buffer(data, len(data))
+        return self._blob(len(data), self._ct.cast(buf, self._ct.POINTER(self._ct.c_char))), buf
+
+    def _take(self, blob):
+        try:
+            return self._ct.string_at(blob.pbData, blob.cbData)
+        finally:
+            self._kernel32.LocalFree(self._ct.cast(blob.pbData, self._ct.c_void_p))
+
+    def encrypt(self, plaintext):
+        if not self.available:
+            raise RuntimeError(self.reason)
+        data_in, _keep = self._in(plaintext.encode("utf-8"))
+        ent, _keep2 = self._in(self._ENTROPY)
+        out = self._blob()
+        if not self._crypt32.CryptProtectData(self._ct.byref(data_in), "mitra", self._ct.byref(ent), None, None,
+                                              self._UI_FORBIDDEN, self._ct.byref(out)):
+            raise OSError(f"CryptProtectData failed (Windows error {self._ct.GetLastError()})")
+        return VAULT_PREFIX + base64.b64encode(self._take(out)).decode("ascii")
+
+    def decrypt(self, token):
+        if not self.available:
+            raise RuntimeError(self.reason)
+        raw = base64.b64decode(token[len(VAULT_PREFIX):] if token.startswith(VAULT_PREFIX) else token, validate=True)
+        data_in, _keep = self._in(raw)
+        ent, _keep2 = self._in(self._ENTROPY)
+        out = self._blob()
+        if not self._crypt32.CryptUnprotectData(self._ct.byref(data_in), None, self._ct.byref(ent), None, None,
+                                                self._UI_FORBIDDEN, self._ct.byref(out)):
+            raise OSError(f"CryptUnprotectData failed (Windows error {self._ct.GetLastError()}) — "
+                          "the value was encrypted by a different Windows user or machine")
+        return self._take(out).decode("utf-8")
+
+
+secret_vault = SecretVault()
+_secrets_cache = {}     # name → decrypted value (RAM only)
+_secrets_stored = {}    # name → "dpapi" | "plaintext" (how it currently sits in .env)
+_vault_errors = {}      # name → why a DPAPI value could not be decrypted
+
+
 def _load_env(path):
     if not os.path.exists(path):
         return
@@ -122,7 +203,20 @@ def _load_env(path):
                 continue
             key, value = line.split("=", 1)
             key, value = key.strip(), value.strip().strip('"').strip("'")
-            if key:
+            if not key:
+                continue
+            if key in VAULT_KEYS:
+                if not value:
+                    continue
+                if value.startswith(VAULT_PREFIX):
+                    try:
+                        _secrets_cache[key] = secret_vault.decrypt(value)
+                        _secrets_stored[key] = "dpapi"
+                    except (RuntimeError, OSError, ValueError) as e:
+                        _vault_errors[key] = str(e)[:200]
+                else:
+                    _secrets_cache[key], _secrets_stored[key] = value, "plaintext"
+            else:
                 os.environ.setdefault(key, value)
 
 
@@ -132,8 +226,16 @@ _PLACEHOLDER = re.compile(r"^(your_|<|changeme|xxx|todo)", re.I)
 
 
 def env(name):
-    """Env var value, or '' when unset / still a placeholder."""
+    """Setting value, or '' when unset / still a placeholder. A real OS environment variable wins
+    over .env (as before); vault keys from .env come from the in-memory decrypted cache."""
     value = (os.environ.get(name) or "").strip()
+    if value.startswith(VAULT_PREFIX) and secret_vault.available:
+        try:
+            value = secret_vault.decrypt(value)
+        except (OSError, ValueError):
+            value = ""
+    if not value:
+        value = _secrets_cache.get(name, "")
     return "" if _PLACEHOLDER.match(value) else value
 
 
@@ -799,11 +901,15 @@ DEFAULT_SETTINGS = {
     "monitor_calibration_db": 90,
     "room_baseline_dbfs": None,     # measured by "Calibrate Quiet Room (3s)"
     "stress_threshold": 66,         # stress index (0–100) that raises a high_stress alert
-    # cry_model.pkl probability needed (plus loudness and 2 windows in a row). Measured on the hub:
-    # 98% of 150 real cries score ≥ 0.9, but so do 25% of 3-s speech windows (all speech ≥ 0.67).
-    "cry_threshold": 0.9,
+    # cry_model.pkl probability for an audio-only cry window (plus loudness). Audio alone needs 2
+    # windows in a row; one window ≥ 0.65 is enough when the camera also sees a distressed face.
+    # Measured earlier on the hub: 98% of 150 real cries score ≥ 0.9, and 3-s speech windows score
+    # ≥ 0.67 — speech suppression comes from the 2-window rule + loudness gate + recent-chat check.
+    "cry_threshold": 0.75,
     "absent_after_sec": 60,         # camera absence before an "absent" alert (when enabled)
+    "settings_rev": 2,
 }
+SETTINGS_REV = 2
 # Alert type → trigger switch that controls parent notifications for it.
 TRIGGER_FOR_TYPE = {"cry": "cry", "scared": "scared", "sad": "sad", "lonely": "sad", "missing": "sad",
                     "loud": "loud", "high_stress": "high_stress", "absent": "absent"}
@@ -821,6 +927,12 @@ def load_settings():
                 merged["triggers"].update({t: bool(on) for t, on in v.items() if t in merged["triggers"]})
             elif k in merged:
                 merged[k] = v
+        # One-time migration (rev 1 → 2): the old 0.9 cry default becomes 0.75. A value the user
+        # picks on the slider afterwards is kept, because the file is then at rev 2.
+        if int(raw.get("settings_rev") or 1) < SETTINGS_REV:
+            if raw.get("cry_threshold") == 0.9:
+                merged["cry_threshold"] = DEFAULT_SETTINGS["cry_threshold"]
+            merged["settings_rev"] = SETTINGS_REV
     return merged
 
 
@@ -834,6 +946,8 @@ def validate_settings_patch(patch):
             phone = re.sub(r"[\s\-().]", "", str(patch[key] or ""))
             if phone and not E164_RE.match(phone):
                 errors[key] = "Use international E.164 format, e.g. +919876543210"
+            elif phone and phone == re.sub(r"[\s\-().]", "", env("TWILIO_FROM_NUMBER")):
+                errors[key] = "That's your Twilio number — enter the parent's own mobile number here"
             else:
                 clean[key] = phone
     if "parent_label" in patch:
@@ -929,7 +1043,32 @@ def _twilio_creds():
 
 
 def twilio_configured():
-    return all(_twilio_creds())
+    sid, token, frm = _twilio_creds()
+    # Trial accounts call from Twilio's shared trial number, so a From number is only needed after upgrading.
+    return bool(sid and token and (frm or _twilio_account.get("type") == "Trial"))
+
+
+# Twilio trial accounts (2025+) accept only To + a Twilio template URL for calls, and only predefined
+# template names as SMS bodies, from Twilio's shared trial numbers — custom Twiml/From are rejected.
+TRIAL_VOICE_TEMPLATE = "https://webhooks.twilio.com/v1/Voice/Template/voice_text_to_speech"
+TRIAL_LIMIT_RE = re.compile(r"trial accounts? (have|has) limited parameter access|predefined sms templates", re.I)
+_twilio_account = {"sid": None, "type": None, "at": 0.0}
+
+
+def twilio_is_trial():
+    """True for a Twilio trial account (looked up once an hour; last known value on network errors)."""
+    sid, token, _ = _twilio_creds()
+    if not (sid and token):
+        return False
+    if _twilio_account["sid"] == sid and _twilio_account["type"] and time.time() - _twilio_account["at"] < 3600:
+        return _twilio_account["type"] == "Trial"
+    try:
+        r = requests.get(f"https://api.twilio.com/2010-04-01/Accounts/{sid}.json", auth=(sid, token), timeout=10)
+        if r.ok:
+            _twilio_account.update(sid=sid, type=r.json().get("type"), at=time.time())
+    except (requests.RequestException, ValueError):
+        pass
+    return _twilio_account["sid"] == sid and _twilio_account["type"] == "Trial"
 
 
 def telegram_configured():
@@ -948,7 +1087,8 @@ def ntfy_topic(settings):
     return (settings.get("ntfy_topic") or "").strip() or env("NTFY_TOPIC")
 
 
-SECRET_ENV = ("GROQ_API_KEY", "TWILIO_AUTH_TOKEN", "TELEGRAM_BOT_TOKEN", "NTFY_TOKEN", "SMTP_PASS")
+SECRET_ENV = ("GROQ_API_KEY", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TELEGRAM_BOT_TOKEN", "NTFY_TOKEN",
+              "SMTP_PASS")
 
 
 def _scrub(text):
@@ -980,16 +1120,6 @@ CREDENTIAL_SPECS = {
 _env_lock = threading.Lock()
 
 
-def _mask(value, secret):
-    if not value:
-        return ""
-    if "@" in value and not secret:
-        name, _, domain = value.partition("@")
-        return (name[:2] + "•••@" + domain) if len(name) > 2 else "•••@" + domain
-    keep = 4 if len(value) > 8 else 2
-    return "•" * min(12, max(4, len(value) - keep)) + value[-keep:]
-
-
 def _env_file_keys():
     keys = set()
     if os.path.exists(ENV_PATH):
@@ -1010,19 +1140,47 @@ def _gitignored_env():
 
 
 def credentials_public():
-    in_file = _env_file_keys()
+    """Zero-exposure view for the browser: only whether each key is set and whether it is stored
+    encrypted. No values, no masks, no lengths, no trailing characters."""
     out = {}
-    for name, (_, secret, hint) in CREDENTIAL_SPECS.items():
-        value = env(name)
-        out[name] = {"set": bool(value), "masked": _mask(value, secret), "secret": secret, "hint": hint,
-                     "source": ("env file" if name in in_file else "environment") if value else None}
+    for name in CREDENTIAL_SPECS:
+        is_set = bool(env(name))
+        out[name] = {"set": is_set, "encrypted": is_set and _secrets_stored.get(name) == "dpapi"
+                     and not (os.environ.get(name) or "").strip()}
     return out
 
 
+def _env_line_value(key, value):
+    """What goes on disk for KEY: DPAPI ciphertext for vault keys (plaintext never written)."""
+    if key in VAULT_KEYS:
+        if not secret_vault.available:
+            raise RuntimeError(f"Refusing to write {key} in plaintext: {secret_vault.reason}")
+        token = secret_vault.encrypt(value)
+        if secret_vault.decrypt(token) != value:   # never replace a key with something unreadable
+            raise RuntimeError(f"DPAPI round-trip check failed for {key}; .env left unchanged")
+        return token
+    return value
+
+
+def migrate_env_secrets():
+    """Encrypt in place any vault key still sitting in .env as plaintext. Returns the names migrated."""
+    plain = sorted(k for k, how in _secrets_stored.items() if how == "plaintext" and _secrets_cache.get(k))
+    if not plain:
+        return []
+    if not secret_vault.available:
+        print(f"⚠️ {len(plain)} key(s) in .env are plaintext and can't be encrypted here: {secret_vault.reason}")
+        return []
+    write_env_values({k: _secrets_cache[k] for k in plain})
+    return plain
+
+
 def write_env_values(updates):
-    """Update/insert/remove KEY=value lines in .env atomically, preserving everything else,
-    then apply the same values to os.environ so they work immediately."""
+    """Update/insert/remove KEY=value lines in .env atomically, preserving everything else.
+    Vault keys are written ONLY as DPAPI:<base64> and kept decrypted in RAM (_secrets_cache);
+    other keys are applied to os.environ so they work immediately."""
     with _env_lock:
+        # Encrypt first: if that fails nothing is written at all.
+        on_disk = {k: (_env_line_value(k, v) if v else v) for k, v in updates.items()}
         lines = []
         if os.path.exists(ENV_PATH):
             with open(ENV_PATH, "r", encoding="utf-8") as f:
@@ -1036,22 +1194,30 @@ def write_env_values(updates):
                 if key in done:
                     continue           # drop duplicate definitions of an updated key
                 done.add(key)
-                if updates[key]:
-                    out.append(f"{key}={updates[key]}")
+                if on_disk[key]:
+                    out.append(f"{key}={on_disk[key]}")
                 continue               # empty value → remove the line
             out.append(line)
         missing = [k for k, v in updates.items() if v and k not in done]
         if missing:
             if out and out[-1].strip():
                 out.append("")
-            out.append("# Added from the Mitra dashboard (Alert Channels)")
-            out.extend(f"{k}={updates[k]}" for k in missing)
+            out.append("# Added from the Mitra dashboard (Alert Channels) — DPAPI-encrypted for this Windows user")
+            out.extend(f"{k}={on_disk[k]}" for k in missing)
         tmp = ENV_PATH + ".tmp"
         with open(tmp, "w", encoding="utf-8", newline="\n") as f:
             f.write("\n".join(out).rstrip("\n") + "\n")
         os.replace(tmp, ENV_PATH)
         for k, v in updates.items():
-            if v:
+            if k in VAULT_KEYS:
+                if v:
+                    _secrets_cache[k], _secrets_stored[k] = v, "dpapi"
+                else:
+                    _secrets_cache.pop(k, None)
+                    _secrets_stored.pop(k, None)
+                _vault_errors.pop(k, None)
+                os.environ.pop(k, None)   # (this process only) an inherited copy must not shadow the saved value
+            elif v:
                 os.environ[k] = v
             else:
                 os.environ.pop(k, None)
@@ -1122,18 +1288,50 @@ def _twilio_result(channel, to, code, body, meta):
         return _attempt(channel, "sent", f"Accepted by Twilio (status: {body.get('status', 'queued')})",
                         _mask_phone(to), sid=body.get("sid"), http_status=code, **meta)
     msg = body.get("message") or "Unknown Twilio error"
-    if body.get("code"):
-        msg += f" (Twilio error {body['code']})"
+    tw_code = body.get("code")
+    if tw_code:
+        msg += f" (Twilio error {tw_code})"
+        hint = _twilio_hint(tw_code, to)
+        if hint:
+            msg += f" — Fix: {hint}"
     return _attempt(channel, "failed", f"Twilio HTTP {code}: {msg}", _mask_phone(to), http_status=code, **meta)
 
 
+def _twilio_hint(tw_code, to):
+    """One-line fix for the Twilio errors parents actually hit on trial accounts."""
+    try:
+        tw_code = int(tw_code)
+    except (TypeError, ValueError):
+        return None
+    cc = "+91" if str(to).startswith("+91") else (re.match(r"^\+\d{1,3}", str(to)) or [""])[0] or "this country"
+    if tw_code in (21219, 21608):
+        return (f"verify this {cc} number under Twilio Console → Phone Numbers → Manage → Verified Caller IDs "
+                "(trial accounts can only reach verified numbers).")
+    if tw_code in (21215, 21408):
+        where = "Voice → Settings → Geo permissions" if tw_code == 21215 else "Messaging → Settings → Geo permissions"
+        country = "India (+91)" if cc == "+91" else cc
+        return f"enable {country} under Twilio Console → {where}, then test again."
+    if tw_code == 572006:
+        return "Twilio trial accounts can only send predefined template SMS (and only to US numbers) — use Voice call, or upgrade Twilio."
+    if tw_code == 21266:
+        return "the 'To' and 'From' numbers must differ — put your own phone in Parent phone, not the Twilio number."
+    if tw_code in (20003, 20404):
+        return "re-check the Account SID and Auth Token in Alert Channels → Twilio."
+    return None
+
+
 def _twilio_precheck(channel, to, meta):
+    trial = twilio_is_trial()          # also fills the account-type cache twilio_configured() reads
     if not twilio_configured():
         return _attempt(channel, "unconfigured",
                         "Add your Twilio Account SID, Auth Token and From number in Alert Channels → Twilio",
                         _mask_phone(to), **meta)
     if not to:
         return _attempt(channel, "unconfigured", "No parent phone number saved in Alert settings", **meta)
+    if not trial and re.sub(r"[^\d+]", "", to) == re.sub(r"[^\d+]", "", _twilio_creds()[2]):
+        return _attempt(channel, "failed",
+                        "Parent phone is the same as your Twilio From number — Twilio can't call or text itself. "
+                        "Enter your own mobile number (e.g. +91…) as Parent phone.", _mask_phone(to), **meta)
     return None
 
 
@@ -1141,6 +1339,17 @@ def send_sms(to, text, **meta):
     blocked = _twilio_precheck("sms", to, meta)
     if blocked:
         return blocked
+    if twilio_is_trial():
+        # Twilio trial SMS: only to verified US numbers, and only Twilio's predefined template texts.
+        if not to.startswith("+1"):
+            return _attempt("sms", "failed", "Twilio trial accounts can only text verified US (+1) numbers, so SMS to "
+                            f"{to[:3]}… isn't possible until Twilio is upgraded — Voice call, ntfy and email still work.",
+                            _mask_phone(to), **meta)
+        try:
+            code, body = _twilio_post("Messages", {"To": to, "Body": "sms_account_alerts"})
+        except requests.RequestException as e:
+            return _attempt("sms", "failed", _scrub(e), _mask_phone(to), **meta)
+        return _twilio_result("sms", to, code, body, meta)
     try:
         code, body = _twilio_post("Messages", {"To": to, "From": _twilio_creds()[2], "Body": text[:1500]})
     except requests.RequestException as e:
@@ -1155,11 +1364,22 @@ def place_call(to, text, **meta):
     spoken = xml_escape(text + " Please check on your child.")
     twiml = (f'<Response><Say voice="alice">{spoken}</Say><Pause length="1"/>'
              f'<Say voice="alice">Repeating. {spoken}</Say></Response>')
+    full = {"To": to, "From": _twilio_creds()[2], "Twiml": twiml}
+    trial_form = {"To": to, "Url": TRIAL_VOICE_TEMPLATE}
+    trial = twilio_is_trial()
     try:
-        code, body = _twilio_post("Calls", {"To": to, "From": _twilio_creds()[2], "Twiml": twiml})
+        code, body = _twilio_post("Calls", trial_form if trial else full)
+        if not trial and code == 400 and TRIAL_LIMIT_RE.search(str(body.get("message") or "")):
+            _twilio_account["type"] = "Trial"          # account was downgraded/unknown → retry in trial form
+            trial = True
+            code, body = _twilio_post("Calls", trial_form)
     except requests.RequestException as e:
         return _attempt("call", "failed", _scrub(e), _mask_phone(to), **meta)
-    return _twilio_result("call", to, code, body, meta)
+    result = _twilio_result("call", to, code, body, meta)
+    if trial and result["status"] == "sent":
+        result["detail"] += (f" — trial account: rings from Twilio's shared trial number {body.get('from') or ''} "
+                             "with Twilio's standard trial message (upgrade Twilio to have Mitra speak the alert itself)")
+    return result
 
 
 def _rfc2047(value):
@@ -1299,7 +1519,8 @@ def _dispatch_worker(alert):
         image = _alert_frame_bytes(alert)
         meta = {"alert_id": alert["id"]}
         attempts = []
-        phones = [p for p in (s["parent_phone"], s["secondary_phone"]) if p] or [""]
+        # dict.fromkeys: the same number in both fields must ring/text once, not twice
+        phones = list(dict.fromkeys(p for p in (s["parent_phone"], s["secondary_phone"]) if p)) or [""]
         phone_ready = twilio_configured() and bool(s["parent_phone"] or s["secondary_phone"])
         for channel, sender in (("sms", send_sms), ("call", place_call)):
             if not s.get(f"enable_{channel}"):
@@ -1843,13 +2064,22 @@ class VisionEngine:
         if faces and faces[0].get("_blend"):
             b = faces[0]["_blend"]
             avg = lambda *names: sum(b.get(n, 0.0) for n in names) / len(names)
-            e = {"smile": avg("mouthSmileLeft", "mouthSmileRight"), "eyes_closed": avg("eyeBlinkLeft", "eyeBlinkRight"),
-                 "frown": avg("mouthFrownLeft", "mouthFrownRight"), "jaw_open": b.get("jawOpen", 0.0),
-                 "squint": avg("eyeSquintLeft", "eyeSquintRight"), "brow_inner_up": b.get("browInnerUp", 0.0),
-                 "brow_down": avg("browDownLeft", "browDownRight"), "mouth_stretch": avg("mouthStretchLeft", "mouthStretchRight")}
-            # Crying face ≈ open/stretched mouth + squeezed eyes + raised inner brows — and no smile.
-            raw = (0.35 * e["jaw_open"] + 0.25 * e["squint"]
-                   + 0.2 * max(e["frown"], e["mouth_stretch"], e["brow_down"]) + 0.2 * e["brow_inner_up"])
+            e = {
+                "smile": avg("mouthSmileLeft", "mouthSmileRight"),
+                "eyes_closed": avg("eyeBlinkLeft", "eyeBlinkRight"),
+                "eye_wide": avg("eyeWideLeft", "eyeWideRight"),
+                "frown": avg("mouthFrownLeft", "mouthFrownRight"),
+                "jaw_open": b.get("jawOpen", 0.0),
+                "squint": avg("eyeSquintLeft", "eyeSquintRight"),
+                "brow_inner_up": b.get("browInnerUp", 0.0),
+                "brow_down": avg("browDownLeft", "browDownRight"),
+                "mouth_stretch": avg("mouthStretchLeft", "mouthStretchRight"),
+                "nose_sneer": avg("noseSneerLeft", "noseSneerRight"),
+                "mouth_press": avg("mouthPressLeft", "mouthPressRight"),
+            }
+            # Crying face ≈ open/stretched mouth + squeezed eyes + furrowed/raised brows — and no smile.
+            raw = (0.32 * e["jaw_open"] + 0.25 * max(e["squint"], e["eyes_closed"] * 0.7)
+                   + 0.23 * max(e["frown"], e["mouth_stretch"], e["brow_down"]) + 0.20 * e["brow_inner_up"])
             e["distress_face"] = raw * (1 - e["smile"])
             out["expression"] = {k: round(_clamp01(v), 3) for k, v in e.items()}
         for f in faces:
@@ -1895,6 +2125,10 @@ STRESS_WEIGHTS = {"cry": 0.40, "loudness": 0.20, "motion": 0.20, "face": 0.10, "
 SCREEN_ALERT_COOLDOWN_SEC = 120
 VISION_AUTO_MIN_GAP_SEC = 30   # one vision frame ≈ 1.3k of the free tier's 7k input tokens/min
 VISION_MANUAL_MIN_GAP_SEC = 3
+VISION_SPIKE_MIN_GAP_SEC = 12  # distress-face / cry spikes get a confirmation pass at most every 12 s
+VISION_CONFIRM_CONF = 0.55     # Groq Vision confidence that overrides the local face model
+VISION_DISTRESS_TO_EMOTION = {"crying": "crying", "upset": "crying", "sad": "sad", "scared": "scared"}
+COMFORT_REPEAT_SEC = 25.0      # minimum gap between two automatic comfort clips on one device
 VISION_EMOTIONS = {"happy", "calm", "focused", "tired", "sad", "scared", "crying", "upset", "unclear", "no_child"}
 VISION_ALERT_TYPE = {"crying": "cry", "scared": "scared", "sad": "sad", "upset": "high_stress"}
 VISION_SYSTEM = ("You are the camera assistant of Mitra, a child-companion device. A parent is checking on their "
@@ -1925,15 +2159,132 @@ def loudness_parts(level_dbfs, baseline_dbfs):
     return _clamp01((level_dbfs + 45) / 20), _clamp01((level_dbfs + 50) / 30), None
 
 
-def behaviour_label(present, motion, expr, eyes_closed_streak, posture, cry_c, audio_stress):
+EMOTION_AUDIO_MAP = {
+    "crying":     ["comfort_2", "comfort_1", "comfort_5", "scared_1"],
+    "cry":        ["comfort_2", "comfort_1", "comfort_5", "scared_1"],
+    "distressed": ["comfort_2", "comfort_5", "comfort_1", "scared_1"],
+    "scared":     ["scared_1", "scared_2", "comfort_2", "comfort_5"],
+    "sad":        ["comfort_5", "comfort_3", "comfort_2", "comfort_1"],
+    "angry":      ["comfort_2", "comfort_5", "comfort_4", "comfort_1"],
+    "high_stress":["comfort_2", "comfort_5", "scared_1", "bedtime_1"],
+}
+
+
+def pick_parent_comfort_clip(emotion):
+    """Find a saved parent_voice/<id>.wav matching `emotion`, falling back to any comfort clip on disk."""
+    candidates = list(EMOTION_AUDIO_MAP.get(emotion, [])) + ["comfort_2", "comfort_5", "scared_1", "comfort_1", "bedtime_1"]
+    seen = set()
+    for pid in candidates:
+        if pid in seen:
+            continue
+        seen.add(pid)
+        if _parent_clip_path(pid):
+            return {"id": pid, "url": f"/audio/parent_voice_{pid}.wav", "text": PHRASES.get(pid, "")}
+    for pid in PHRASES:
+        if _parent_clip_path(pid):
+            return {"id": pid, "url": f"/audio/parent_voice_{pid}.wav", "text": PHRASES.get(pid, "")}
+    return None
+
+
+def classify_emotions(expr, cry_c, audio_stress, eyes_closed_streak, posture, motion):
+    """Diversified facial + vocal emotion classifier over MediaPipe blendshapes & cry model.
+
+    Distinguishes crying (tense brows + open/stretched mouth + squint) from relaxed sleepiness.
+    Tuned for attenuated signals too (a webcam across the room, or a photo held up on a phone
+    screen yields blendshapes around 0.15–0.35 rather than 0.5+).
+    Returns (scores_dict, top_emotion, confidence, wellbeing_score_0_100, raw_scores).
+    """
+    e = expr or {}
+    smile = e.get("smile") or 0.0
+    eyes_closed = e.get("eyes_closed") or 0.0
+    eye_wide = e.get("eye_wide") or 0.0
+    frown = e.get("frown") or 0.0
+    jaw_open = e.get("jaw_open") or 0.0
+    squint = e.get("squint") or 0.0
+    brow_up = e.get("brow_inner_up") or 0.0
+    brow_down = e.get("brow_down") or 0.0
+    stretch = e.get("mouth_stretch") or 0.0
+    sneer = e.get("nose_sneer") or 0.0
+    press = e.get("mouth_press") or 0.0
+    distress = e.get("distress_face") or 0.0
+    no_smile = max(0.0, 1.0 - smile * 1.15)
+
+    # 1. Crying: wide open/stretched/frowning mouth + squeezed eyes / tense brows OR cry audio ML
+    cry_eye_tension = max(squint, 0.75 * eyes_closed if (jaw_open >= 0.18 or brow_down >= 0.2 or brow_up >= 0.2) else 0.0)
+    cry_face = no_smile * (0.38 * jaw_open + 0.26 * max(stretch, frown) + 0.22 * cry_eye_tension + 0.14 * max(brow_up, brow_down))
+    # Crying rule: a distressed mouth paired with eye/brow tension and no smile.
+    mouth_open = jaw_open >= 0.14 or stretch >= 0.16
+    mouth_cry = mouth_open or frown >= 0.16
+    tension = squint >= 0.15 or brow_down >= 0.15 or brow_up >= 0.15
+    if mouth_cry and tension and smile < 0.20:
+        if mouth_open or squint >= 0.15 or brow_down >= 0.15:
+            cry_face = max(cry_face, 0.48)
+        else:
+            # Closed downturned mouth + only raised inner brows is the classic *sad* face; give
+            # crying a floor that still beats calm/sleepy but lets a strong sad signal win.
+            cry_face = max(cry_face, 0.24)
+    # Crying grimace (FACS AU4 brow lowerer + AU6/7 eye squeeze, small mouth signal) — tells a
+    # squeezed-eye cry apart from anger, which instead shows widened eyes (AU5) or pressed lips (AU23/24).
+    if squint >= 0.30 and brow_down >= 0.25 and eye_wide < 0.15 and press < 0.20 and smile < 0.20 \
+            and (frown >= 0.10 or stretch >= 0.10 or jaw_open >= 0.10 or eyes_closed >= 0.25):
+        cry_face = max(cry_face, 0.48)
+    s_crying = max(cry_face * 1.35, distress * 1.25, (cry_c or 0.0) * 1.2, (audio_stress or 0.0) * 0.85 if (cry_c or 0) >= 0.35 else 0.0)
+
+    # 2. Happy: genuine smile
+    s_happy = smile * (1.25 if jaw_open < 0.45 else 1.0) * (1.0 - 0.5 * brow_down)
+
+    # 3. Sad: downturned mouth / raised inner brows without wide screaming mouth
+    s_sad = no_smile * (0.48 * frown + 0.36 * brow_up + 0.16 * press) * (1.15 if jaw_open < 0.28 else 0.6)
+
+    # 4. Scared: wide eyes + raised inner brows + open/tense mouth
+    s_scared = no_smile * (0.50 * eye_wide + 0.28 * brow_up + 0.22 * max(stretch, jaw_open))
+
+    # 5. Angry: lowered brows + nose sneer + pressed mouth
+    s_angry = no_smile * (0.48 * brow_down + 0.28 * sneer + 0.24 * max(press, squint * 0.6)) * (1.0 - 0.5 * eye_wide)
+
+    # 6. Sleepy: ONLY when eyes closed AND face is relaxed (never when crying/screaming!)
+    relaxed = max(0.0, 1.0 - max(jaw_open * 2.2, distress * 2.0, brow_down * 1.6, frown * 1.5))
+    sleep_sig = max(eyes_closed if eyes_closed >= 0.35 else 0.0, 0.55 if eyes_closed_streak >= 2 else 0.0, 0.45 if posture == "lying" else 0.0)
+    s_sleepy = sleep_sig * relaxed * (0.85 if (motion is None or motion < 0.25) else 0.35)
+
+    # 7. Calm: neutral baseline that falls away fast once any real expression shows up
+    #    (peak 0 → 0.35, peak 0.18 → 0.10, peak ≥ 0.215 → 0.05 floor).
+    peak_active = max(s_crying, s_happy, s_sad, s_scared, s_angry, s_sleepy)
+    s_calm = max(0.05, 0.35 - peak_active * 1.4)
+
+    raw_scores = {
+        "crying": max(0.0, s_crying),
+        "happy":  max(0.0, s_happy),
+        "sad":    max(0.0, s_sad),
+        "scared": max(0.0, s_scared),
+        "angry":  max(0.0, s_angry),
+        "sleepy": max(0.0, s_sleepy),
+        "calm":   max(0.0, s_calm),
+    }
+    total = sum(raw_scores.values()) or 1.0
+    scores = {k: round(v / total, 3) for k, v in raw_scores.items()}
+    top = max(scores, key=scores.get)
+    conf = scores[top]
+
+    # Wellbeing score (0–100: higher = happier/calmer, lower = distressed)
+    wellbeing = int(round(_clamp01(
+        scores["happy"] * 0.98 + scores["calm"] * 0.85 + scores["sleepy"] * 0.62
+        + scores["sad"] * 0.25 + scores["angry"] * 0.20 + scores["scared"] * 0.15 + scores["crying"] * 0.05
+    ) * 100))
+    return scores, top, conf, wellbeing, {k: round(v, 3) for k, v in raw_scores.items()}
+
+
+def behaviour_label(present, motion, expr, eyes_closed_streak, posture, cry_c, audio_stress, detected_emotion=None, emotion_conf=0.0):
     if not present:
         return "away"
     expr = expr or {}
-    if (cry_c or 0) >= 0.5 or (expr.get("distress_face") or 0) >= 0.55 or (audio_stress or 0) >= 0.7:
-        return "distressed"
+    if (cry_c or 0) >= 0.5 or (audio_stress or 0) >= 0.7 or (detected_emotion == "crying" and emotion_conf >= 0.26) or (expr.get("distress_face") or 0) >= 0.40:
+        return "crying"
+    if detected_emotion in ("scared", "sad", "angry", "happy") and emotion_conf >= 0.28:
+        return detected_emotion
     if motion is not None and motion >= 0.6:
         return "restless"
-    if (eyes_closed_streak >= 2 or posture == "lying") and (motion is None or motion < 0.2):
+    if (detected_emotion == "sleepy" and emotion_conf >= 0.30) or ((eyes_closed_streak >= 2 or posture == "lying") and (motion is None or motion < 0.2) and (expr.get("distress_face") or 0) < 0.3):
         return "sleepy"
     if motion is not None and motion >= 0.3:
         return "active"
@@ -2032,8 +2383,9 @@ def screening_analyze(device, frame=None, wav=None, client_motion=None, want_vis
         st = _screen_state.get(device)
         if not st or now - st["last_seen"] > 30:   # new session after a gap
             st = {"started_at": now, "last_seen": now, "last_present_at": None, "prev_small": None, "prev_t": None,
-                  "eyes_closed_streak": 0, "cry_streak": 0, "stress_streak": 0, "absent_alerted": False,
-                  "prev_audio": None, "last_vision_at": 0.0, "last_vision": None}
+                  "eyes_closed_streak": 0, "cry_streak": 0, "stress_streak": 0, "face_distress_streak": 0,
+                  "absent_alerted": False, "prev_audio": None, "last_vision_at": 0.0, "last_vision": None,
+                  "last_comfort_at": 0.0}
             _screen_state[device] = st
         st["last_seen"] = now
         _screen_devices[device] = now
@@ -2059,7 +2411,8 @@ def screening_analyze(device, frame=None, wav=None, client_motion=None, want_vis
                 motion, motion_source = server_motion, "hub frame difference between analyses"
         st["prev_small"] = va["small"]
     expr = va.get("expression") if va else None
-    if expr and (expr.get("eyes_closed") or 0) >= 0.55:
+    is_relaxed_eyes = bool(expr and (expr.get("eyes_closed") or 0) >= 0.55 and (expr.get("jaw_open") or 0) < 0.22 and (expr.get("distress_face") or 0) < 0.32)
+    if is_relaxed_eyes:
         st["eyes_closed_streak"] += 1
     elif va is not None:
         st["eyes_closed_streak"] = 0
@@ -2091,52 +2444,95 @@ def screening_analyze(device, frame=None, wav=None, client_motion=None, want_vis
     audio_stress = round(_clamp01(0.67 * cry_c + 0.33 * loud_c), 3) if cry_c is not None else (
         round(loud_c, 3) if loud_c is not None else None)
 
-    # ── stress index ──
+    # ── diversified emotion & stress index ──
     events = min(1.0, recent_distress_count(600) / 3)
     parts = {"cry": cry_c, "loudness": loud_c, "motion": motion,
              "face": expr.get("distress_face") if expr else None, "events": events}
     stress = int(round(100 * sum(STRESS_WEIGHTS[k] * _clamp01(v) for k, v in parts.items() if v is not None)))
     coverage = round(sum(STRESS_WEIGHTS[k] for k, v in parts.items() if v is not None), 2)
-    label = behaviour_label(present, motion, expr, st["eyes_closed_streak"], va.get("posture") if va else None,
-                            cry_c, audio_stress) if va else None
+    emotion_scores, det_emotion, det_conf, emotion_score, raw_emotions = (
+        classify_emotions(expr, cry_c, audio_stress, st["eyes_closed_streak"], va.get("posture") if va else None, motion)
+        if (va and present and expr) else (None, None, None, None, None)
+    )
+    distress_face_v = (expr.get("distress_face") or 0.0) if expr else 0.0
 
     # ── streaks for alerts ──
-    cry_hit = cry_prob is not None and cry_prob >= float(s.get("cry_threshold") or 0.5) and (cry_gate or 0) >= 0.5
+    cry_hit = cry_prob is not None and cry_prob >= float(s.get("cry_threshold") or 0.75) and (cry_gate or 0) >= 0.5
+    face_distress = bool(det_emotion in ("crying", "scared", "sad", "angry") and ((det_conf or 0) >= 0.28 or distress_face_v >= 0.38))
     st["cry_streak"] = st["cry_streak"] + 1 if cry_hit else 0
+    st["face_distress_streak"] = st.get("face_distress_streak", 0) + 1 if face_distress else 0
     st["stress_streak"] = st["stress_streak"] + 1 if stress >= int(s.get("stress_threshold") or 66) else 0
 
-    # ── Groq vision pass (manual, chat sync, or automatically on a spike) ──
+    # ── Groq vision pass: manual, or an automatic confirmation whenever the face looks distressed ──
     vision = None
     child_msg = context_text or ((last_child_message(20) or {}).get("text"))
-    spike = cry_hit or st["stress_streak"] >= 1
+    # A screaming mouth often scores as a "smile" in MediaPipe; smile + strongly lowered brows is rare in
+    # real laughter, so that ambiguous combination also asks Groq Vision (it never alerts by itself).
+    ambiguous_face = bool(expr and (expr.get("smile") or 0) >= 0.30 and (expr.get("brow_down") or 0) >= 0.40)
+    face_spike = distress_face_v >= 0.22 or ((raw_emotions or {}).get("crying") or 0) >= 0.22 or ambiguous_face
+    spike = face_spike or cry_hit or face_distress or st["stress_streak"] >= 1
     gap = now - st["last_vision_at"]
-    if frame and ((want_vision and gap >= VISION_MANUAL_MIN_GAP_SEC) or (spike and gap >= VISION_AUTO_MIN_GAP_SEC)):
+    min_gap = VISION_SPIKE_MIN_GAP_SEC if (face_spike or cry_hit or face_distress) else VISION_AUTO_MIN_GAP_SEC
+    if frame and groq_configured() and ((want_vision and gap >= VISION_MANUAL_MIN_GAP_SEC) or (spike and gap >= min_gap)):
         st["last_vision_at"] = now
         vision = vision_observe(frame, _sensor_context(cry_prob, over_db, motion, expr, child_msg))
-        vision["trigger"] = "manual" if want_vision else "stress spike"
+        vision["trigger"] = "manual" if want_vision else ("distress confirmation" if face_spike else "stress spike")
         timings["vision_llm_ms"] = vision["latency_ms"]
         st["last_vision"] = vision
 
-    # ── alerts (one per cycle; real evidence attached) ──
+    # A confident Groq Vision verdict of crying/sad/scared/upset overrides the local face model.
+    vision_emotion = None
+    if vision and not vision.get("error") and vision.get("emotion") in VISION_DISTRESS_TO_EMOTION \
+            and (vision.get("confidence") or 0) >= VISION_CONFIRM_CONF:
+        vision_emotion = VISION_DISTRESS_TO_EMOTION[vision["emotion"]]
+        det_emotion, det_conf = vision_emotion, round(max(det_conf or 0.0, float(vision["confidence"])), 3)
+        face_distress = True
+
+    label = behaviour_label(present, motion, expr, st["eyes_closed_streak"], va.get("posture") if va else None,
+                            cry_c, audio_stress, det_emotion, det_conf or 0.0) if va else None
+
+    # ── crying decision: any ONE of these fires the alert + comfort audio right away ──
+    recent_chat = last_child_message(10)
+    cry_reason = None
+    if cry_prob is not None and cry_prob >= 0.65 and face_distress:
+        cry_reason = f"cry sound P={cry_prob:.2f} + {det_emotion} face in the same window"
+    elif det_emotion == "crying" and (det_conf or 0) >= 0.32:
+        cry_reason = (f"Groq Vision sees crying ({int(det_conf * 100)}%)" if vision_emotion == "crying"
+                      else f"crying face on camera ({int(det_conf * 100)}% confidence)")
+    elif vision_emotion == "crying":
+        cry_reason = "Groq Vision sees crying"
+    elif st["cry_streak"] >= 2 and not recent_chat:   # audio alone: 2 windows (speech guard)
+        cry_reason = f"cry sound P={cry_prob:.2f} for 2 windows in a row"
+
+    # ── alerts & saved comfort audio (one per cycle; real evidence attached) ──
     alert = None
+    comfort_audio = None
     s_trig = s.get("triggers", {})
     clip = None
     if y is not None and len(y):
         joined = np.concatenate([st["prev_audio"], y]) if st["prev_audio"] is not None else y
         clip = {"bytes": pcm16_wav(joined), "duration": len(joined) / CRY_SR}
-    recent_chat = last_child_message(10)
-    if st["cry_streak"] >= 2 and not recent_chat and _screen_cooldown_ok("cry", now):
-        alert = create_alert("cry", f"Cry model P(crying)={cry_prob:.2f} for 2 windows in a row"
+    if cry_reason and _screen_cooldown_ok("cry", now):
+        alert = create_alert("cry", f"Crying detected: {cry_reason}"
                              + (f", {over_db:+.0f} dB over the room baseline" if over_db is not None else "")
                              + " — Live Screening", round(clip["duration"], 1) if clip else 0,
-                             {"source": "screening", "cry_probability": round(cry_prob, 3), "stress_index": stress},
+                             {"source": "vision" if vision_emotion else "screening",
+                              "cry_probability": round(cry_prob, 3) if cry_prob is not None else None,
+                              "stress_index": stress, "emotion": "crying",
+                              "observation": vision.get("observation") if vision else None},
                              capture=clip, frame=frame)
-    elif vision and vision.get("distress") and (vision.get("confidence") or 0) >= 0.6 \
-            and vision.get("emotion") in VISION_ALERT_TYPE and _screen_cooldown_ok("vision", now):
+    elif vision_emotion and vision_emotion != "crying" and _screen_cooldown_ok("vision_" + vision_emotion, now):
         kind = VISION_ALERT_TYPE[vision["emotion"]]
         alert = create_alert(kind, f"Seen on camera: {vision['observation']}", 0,
                              {"source": "vision", "observation": vision["observation"], "vision_model": vision["model"],
-                              "stress_index": stress}, capture=clip, frame=frame)
+                              "stress_index": stress, "emotion": vision["emotion"]}, capture=clip, frame=frame)
+    elif st["face_distress_streak"] >= 2 and not recent_chat and not cry_reason \
+            and _screen_cooldown_ok("face_" + (det_emotion or "crying"), now):
+        kind = "cry" if det_emotion == "crying" else det_emotion if det_emotion in ("scared", "sad") else "high_stress"
+        alert = create_alert(kind, f"Camera detected {det_emotion} expression ({int((det_conf or 0) * 100)}% confidence) — Live Screening", 0,
+                             {"source": "screening", "stress_index": stress, "emotion": det_emotion,
+                              "observation": (st["last_vision"] or {}).get("observation") if st["last_vision"] and now - st["last_vision"]["at"] < 60 else None},
+                             capture=clip, frame=frame)
     elif st["stress_streak"] >= 2 and _screen_cooldown_ok("high_stress", now):
         alert = create_alert("high_stress", f"Stress index {stress}/100 for 2 analyses in a row — Live Screening", 0,
                              {"source": "screening", "stress_index": stress, "cry_probability": cry_prob,
@@ -2146,6 +2542,19 @@ def screening_analyze(device, frame=None, wav=None, client_motion=None, want_vis
         st["absent_alerted"] = True
         alert = create_alert("absent", f"No child detected on camera for {int(absence_sec)} s — Live Screening", 0,
                              {"source": "screening"}, frame=frame)
+
+    # Play matching saved parent comfort voice when distress/crying/scared/sad is detected (25s playback cooldown)
+    # Crying plays comfort immediately even when the alert itself is still in its 120 s cooldown.
+    distress_emo = ("crying" if cry_reason else None) \
+        or (alert.get("type") if alert and alert.get("type") != "absent" else None) \
+        or (det_emotion if face_distress else None)
+    if distress_emo and now - st.get("last_comfort_at", 0.0) >= COMFORT_REPEAT_SEC:
+        picked = pick_parent_comfort_clip(distress_emo)
+        if picked:
+            st["last_comfort_at"] = now
+            comfort_audio = {**picked, "emotion": distress_emo,
+                             "reason": cry_reason or (alert or {}).get("note") or f"{distress_emo} face on camera"}
+            enqueue_audio("parent_clip", picked["text"], picked["url"], label=s.get("parent_label") or "Mama/Papa")
     if y is not None:
         st["prev_audio"] = y[-CRY_SR * 3:]
 
@@ -2156,6 +2565,11 @@ def screening_analyze(device, frame=None, wav=None, client_motion=None, want_vis
         "posture": va["posture"] if va else None, "brightness": va["brightness"] if va else None,
         "motion_agitation_score": round(motion, 3) if motion is not None else None, "motion_source": motion_source,
         "pose_or_expression": label, "expression": expr, "absence_sec": absence_sec,
+        "emotion_scores": emotion_scores, "detected_emotion": det_emotion,
+        "emotion_source": "groq-vision" if vision_emotion else ("face-model" if det_emotion else None),
+        "cry_reason": cry_reason,
+        "emotion_confidence": det_conf, "emotion_score": emotion_score,
+        "comfort_audio": comfort_audio,
         "cry_probability": round(cry_prob, 3) if cry_prob is not None else None,
         "audio_dbfs": level, "audio_db": round(max(0.0, level + float(s.get("monitor_calibration_db") or 90)), 1) if level is not None else None,
         "db_over_baseline": over_db, "baseline_dbfs": baseline, "audio_stress_score": audio_stress,
@@ -2893,7 +3307,8 @@ def qr_route():
 def get_credentials():
     if not _same_origin():
         return _forbidden()
-    return jsonify({"credentials": credentials_public(), "writable": _from_hub_machine(),
+    return jsonify({"credentials": credentials_public(),
+                    "writable": _from_hub_machine(), "vault": "dpapi" if secret_vault.available else None,
                     "env_file": os.path.exists(ENV_PATH), "gitignored": _gitignored_env()})
 
 
@@ -2910,8 +3325,11 @@ def post_credentials():
         return jsonify({"ok": False, "errors": errors, "error": " · ".join(errors.values())}), 400
     if not clean:
         return jsonify({"ok": False, "error": "Nothing to save"}), 400
-    write_env_values(clean)
-    print(f"🔑 Updated in .env: {', '.join(sorted(clean))}")
+    try:
+        write_env_values(clean)
+    except (RuntimeError, OSError) as e:
+        return jsonify({"ok": False, "error": f"Keys not saved — {e}"}), 500
+    print(f"🔑 Encrypted into .env (DPAPI): {', '.join(sorted(clean))}")
     return jsonify({"ok": True, "saved": sorted(clean), "credentials": credentials_public(),
                     "twilio_configured": twilio_configured(), "telegram_configured": telegram_configured(),
                     "email_configured": email_configured()})
@@ -2970,7 +3388,10 @@ def telegram_detect_chat():
         updates = {"TELEGRAM_CHAT_ID": chosen}
         if body.get("token"):
             updates["TELEGRAM_BOT_TOKEN"] = token
-        write_env_values(updates)
+        try:
+            write_env_values(updates)
+        except (RuntimeError, OSError) as e:
+            return jsonify({"ok": False, "error": f"Chat id not saved — {e}"}), 500
         saved = chosen
     username = bot.get("username")
     return jsonify({"ok": True, "bot": {"username": username, "name": bot.get("first_name"),
@@ -3096,6 +3517,11 @@ def _make_hub_server(port):
 if __name__ == "__main__":
     port = int(env("MITRA_PORT") or 5000)
     server = _make_hub_server(port)   # exits with a clear message if the port is taken
+    try:
+        _migrated = migrate_env_secrets()
+    except (RuntimeError, OSError) as _e:
+        _migrated = []
+        print(f"⚠️ Could not encrypt plaintext keys in .env: {_e}")
     print("=" * 56)
     print("🌐 Mitra hub starting…")
     print(f"   Dashboard:  http://127.0.0.1:{port}  (or http://localhost:{port})")
@@ -3107,6 +3533,11 @@ if __name__ == "__main__":
     print(f"   Twilio:     {'ready' if twilio_configured() else 'not configured'}")
     print(f"   Telegram:   {'ready' if telegram_configured() else 'not configured'}")
     print(f"   Email:      {'ready' if email_configured() else 'not configured'}")
+    _enc = sorted(k for k, how in _secrets_stored.items() if how == "dpapi")
+    print(f"   Key vault:  {'DPAPI, ' + str(len(_enc)) + ' key(s) encrypted in .env' if secret_vault.available else secret_vault.reason}"
+          + (f" — just encrypted {', '.join(_migrated)}" if _migrated else ""))
+    for _k, _why in _vault_errors.items():
+        print(f"   ⚠️ {_k}: {_why}")
     print(f"   ntfy:       {ntfy_server()} (topic set in settings or NTFY_TOPIC)")
     print("=" * 56)
 
