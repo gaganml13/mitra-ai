@@ -213,6 +213,19 @@ main{flex:1;position:relative;z-index:1}
 .player.playing .bars i,.playing .bars i{animation:eq .9s ease-in-out infinite alternate}
 .bars i:nth-child(3n){animation-delay:.15s}.bars i:nth-child(3n+1){animation-delay:.3s}.bars i:nth-child(4n){animation-delay:.45s}
 @keyframes eq{from{transform:scaleY(.4)}to{transform:scaleY(1.15)}}
+.comfort-card{display:flex;align-items:center;gap:14px;margin-top:12px;padding:12px 14px;border-radius:var(--r-lg,18px);background:linear-gradient(135deg,#FFF4E8,#FBEFF7);border:1px solid #F3D9C4;box-shadow:var(--shadow-xs);animation:pop .35s var(--ease)}
+.comfort-card.playing{border-color:var(--violet);box-shadow:0 0 0 3px rgba(124,92,191,.14),var(--shadow-xs)}
+.comfort-card.blocked{border-color:var(--coral);background:linear-gradient(135deg,#FFF1EE,#FFF8F2)}
+.comfort-card .cc-body{flex:1;min-width:0}
+.comfort-card .cc-head{font-weight:700;color:#7A4A12;font-size:.95rem}
+.comfort-card .bars{height:28px;margin:6px 0 2px}
+.comfort-card .bars i{opacity:.55}.comfort-card.playing .bars i{opacity:.9}
+.comfort-card .cc-quote{font-family:var(--f-serif);font-style:italic;color:var(--ink-2);font-size:.95rem;line-height:1.4}
+.comfort-card .cc-why{font-family:var(--f-mono);font-size:.66rem;color:var(--stone);margin-top:4px}
+.saved-tick{font-family:var(--f-mono);font-size:.68rem;font-weight:500;margin-left:6px}
+.saved-tick.ok{color:var(--sage-deep);animation:savedFade 4s ease forwards}
+.saved-tick.busy{color:var(--stone)}.saved-tick.bad{color:var(--coral-deep)}
+@keyframes savedFade{0%,70%{opacity:1}100%{opacity:.35}}
 .voice-note-quote{font-family:var(--f-serif);font-style:italic;font-size:1.05rem;color:var(--ink-2);margin-top:12px;line-height:1.5}
 .composer{display:flex;align-items:center;gap:10px;margin-top:22px;padding:7px;background:var(--clay-soft);border-radius:var(--r-pill);border:1px solid var(--line)}
 .mic-btn{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm);transition:background .2s,color .2s,transform .2s var(--ease)}
@@ -614,6 +627,9 @@ details.more[open] summary::before{transform:rotate(90deg)}
 .setup .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .setup .msg{font-size:.78rem}
 .setup .msg.ok{color:var(--sage-deep)} .setup .msg.bad{color:var(--coral-deep)}
+.cred-vault summary{cursor:pointer;font-size:.78rem;font-weight:600;color:var(--sage-ink);list-style:none;display:inline-flex;align-items:center;gap:6px;user-select:none}
+.cred-vault summary::-webkit-details-marker{display:none}
+.cred-vault[open] summary{margin-bottom:10px}
 .qr-box{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .qr-box .qr{background:#fff;border-radius:12px;padding:6px;border:1px solid var(--line);line-height:0}
 .qr-box .qr svg{width:132px;height:132px}
@@ -804,9 +820,11 @@ details.more[open] summary::before{transform:rotate(90deg)}
             <div class="toggles">
               <label class="tg"><input type="checkbox" id="tgAuto" data-input="screen-auto"/> Auto-Screen every 3s</label>
               <label class="tg"><input type="checkbox" id="tgSync" data-input="screen-sync"/> Sync with Child Chat</label>
+              <label class="tg"><input type="checkbox" id="tgComfort" data-input="screen-comfort"/> Auto-play saved comfort audio</label>
               <label class="tg"><input type="checkbox" id="tgAbsent" data-input="screen-absent"/> Alert if child leaves the camera</label>
             </div>
             <div class="mon-status" id="screenStatus"></div>
+            <div id="comfortCard" aria-live="polite"></div>
           </div>
           <div class="card mini-card">
             <div class="mini-head"><h3>Groq Vision observations</h3><span class="when" id="obsModel"></span></div>
@@ -1075,7 +1093,20 @@ const STATUS_META = {
   offline:      { label: 'offline',                    strip: 'Can’t reach the Mitra hub',               tone: 'stone' },
 };
 const MOOD_COPY = { idle: '✨ Ready to play!', listening: '👂 Listening…', transcribing: '✍️ Understanding…', thinking: '🤔 Thinking…', speaking: '🗣️ Talking…', parent: "💖 Mama/Papa's voice…" };
-const LABEL_COPY = { calm: '😌 Calm', active: '🏃 Active', restless: '🌀 Restless', distressed: '😢 Distressed', sleepy: '😴 Sleepy', away: '🚪 Away' };
+const LABEL_COPY = {
+  happy: '😊 Happy', calm: '😌 Calm', active: '🏃 Active', restless: '🌀 Restless',
+  crying: '😢 Crying', distressed: '😢 Crying', sad: '😔 Sad', scared: '😨 Scared',
+  angry: '😠 Angry', sleepy: '😴 Sleepy', away: '🚪 Away',
+};
+const EMOTION_COLOR = {
+  crying: '#E85D5D', distressed: '#E85D5D', angry: '#E85D5D',
+  scared: '#7C5CBF', sad: '#E8A020', sleepy: '#7A869A',
+  restless: '#E8A020', happy: '#2A9D8F', calm: '#2A9D8F', active: '#2A9D8F',
+};
+const EMOTION_BARS = [
+  ['crying', '😢 Crying'], ['happy', '😊 Happy'], ['sad', '😔 Sad'],
+  ['scared', '😨 Scared'], ['angry', '😠 Angry'], ['sleepy', '😴 Sleepy'], ['calm', '😌 Calm'],
+];
 const LEVEL_COPY = { calm: 'Calm', elevated: 'Elevated', high: 'High stress / distress' };
 
 const NOTIFY_CHANNELS = [
@@ -1088,9 +1119,17 @@ const NOTIFY_CHANNELS = [
 ];
 const TRIGGER_TYPES = [['cry', 'Crying'], ['scared', 'Scared'], ['sad', 'Sad / lonely / missing you'], ['loud', 'Loud sound'], ['high_stress', 'High stress index'], ['absent', 'Child left camera view']];
 const CRED_GROUPS = {
-  telegram: [['TELEGRAM_BOT_TOKEN', 'Bot token (from @BotFather)', 'password'], ['TELEGRAM_CHAT_ID', 'Chat ID', 'text']],
-  twilio: [['TWILIO_ACCOUNT_SID', 'Account SID', 'text'], ['TWILIO_AUTH_TOKEN', 'Auth token', 'password'], ['TWILIO_FROM_NUMBER', 'Twilio number (E.164)', 'text']],
-  email: [['SMTP_HOST', 'SMTP host', 'text'], ['SMTP_PORT', 'Port', 'text'], ['SMTP_USER', 'SMTP user (email)', 'text'], ['SMTP_PASS', 'Password / App Password', 'password'], ['PARENT_EMAIL', 'Send alerts to', 'text']],
+  telegram: [['TELEGRAM_BOT_TOKEN', 'Bot token (from @BotFather)', 'password'], ['TELEGRAM_CHAT_ID', 'Chat ID', 'password']],
+  twilio: [['TWILIO_ACCOUNT_SID', 'Account SID', 'password'], ['TWILIO_AUTH_TOKEN', 'Auth token', 'password'], ['TWILIO_FROM_NUMBER', 'Twilio number (E.164)', 'password']],
+  email: [['SMTP_HOST', 'SMTP host', 'text'], ['SMTP_PORT', 'Port', 'text'], ['SMTP_USER', 'SMTP user (email)', 'password'], ['SMTP_PASS', 'Password / App Password', 'password'], ['PARENT_EMAIL', 'Send alerts to', 'password']],
+};
+/* Input placeholders: format hints only (kept in the page so the hub API returns nothing but set/encrypted). */
+const CRED_HINTS = {
+  TWILIO_ACCOUNT_SID: 'starts with AC + 32 hex characters', TWILIO_AUTH_TOKEN: '32 hex characters',
+  TWILIO_FROM_NUMBER: 'your Twilio number in E.164, e.g. +15551234567', TELEGRAM_BOT_TOKEN: 'looks like 123456789:AA…',
+  TELEGRAM_CHAT_ID: 'a number such as 123456789', SMTP_HOST: 'e.g. smtp.gmail.com', SMTP_PORT: '587 (STARTTLS) or 465 (SSL)',
+  SMTP_USER: 'usually your full email address', SMTP_PASS: 'for Gmail: a 16-character App Password',
+  PARENT_EMAIL: 'where alert emails are sent',
 };
 const OUTBOX_LABEL = { parent_recording: '🎙️ Voice note', parent_tts: '💬 Typed message', parent_clip: '💖 Comfort voice', story: '📖 Soft Tale' };
 
@@ -1306,8 +1345,8 @@ const MitraStore = (() => {
     // live screening (this browser's camera + mic)
     screening: {
       active: false, starting: false, error: null, analyzing: false, lastResult: null, lastAt: null, lastError: null,
-      auto: sprefs.auto !== false, sync: sprefs.sync !== false, calibrating: false, busy: null,
-      visionLog: [], refs: [], cycles: 0,
+      auto: sprefs.auto !== false, sync: sprefs.sync !== false, autoComfort: sprefs.autoComfort !== false,
+      calibrating: false, busy: null, lastComfort: null, visionLog: [], refs: [], cycles: 0,
     },
     screenState: { latest: null, history: [], engines: null },   // hub-wide (any screening device)
     pipOpen: false,
@@ -1344,6 +1383,7 @@ const MitraStore = (() => {
     ntfySource: null,
     notifications: [],
     notifyTests: {},                  // channel → {pending} | {attempt} | {error}
+    fieldStatus: {},                  // settings field → {state: busy|ok|bad, text, at} (auto-save ticks)
     deviceTelemetry: { samples: [], lastAt: null },
     monitorPrefs: {
       thresholdDb: Number(prefs.thresholdDb) || CONFIG.MONITOR.DEFAULT_THRESHOLD,
@@ -1388,8 +1428,32 @@ const MitraStore = (() => {
 const MitraAudio = (() => {
   const { setState } = MitraStore;
 
-  /* ── Playback channel ── */
-  let current = null, settle = null;
+  /* ── Playback channel ──
+     One persistent <audio> element. unlock() plays a 20 ms silent WAV on it (and resumes a Web Audio
+     context) *inside a user click*; browsers then allow later play() calls on that same element
+     without a gesture — so comfort clips returned by background analyses are never autoplay-blocked
+     (Chrome/Edge/Safari, desktop and mobile). */
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRmQBAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUABAAA' + 'A'.repeat(427) + '=';
+  let current = null, settle = null, shared = null, unlockCtx = null, unlocked = false, playToken = 0;
+  const element = () => { if (!shared) { shared = new Audio(); shared.preload = 'auto'; } return shared; };
+  function unlock() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) {
+        unlockCtx = unlockCtx || new AC();
+        if (unlockCtx.state === 'suspended') unlockCtx.resume().catch(() => {});
+        const src = unlockCtx.createBufferSource();
+        src.buffer = unlockCtx.createBuffer(1, 1, 22050);
+        src.connect(unlockCtx.destination); src.start(0);
+      }
+    } catch {}
+    if (unlocked || current) return Promise.resolve(unlocked);   // never interrupt real playback
+    const a = element();
+    a.onended = a.onerror = null;
+    a.src = SILENT_WAV;
+    const p = a.play();
+    return (p ? p : Promise.resolve()).then(() => { unlocked = true; return true; }).catch(() => false);
+  }
   function stopAllAudio() {
     if (current) {
       current.onended = current.onerror = null;
@@ -1406,18 +1470,20 @@ const MitraAudio = (() => {
     stopAllAudio();
     if (!url) return Promise.resolve('error');
     return new Promise(resolve => {
-      const audio = new Audio(url);
+      const audio = element(), token = ++playToken;
       current = audio; settle = resolve;
       setState({ audioState: mode, playingKey: key });
       const finish = result => {
-        if (current !== audio) return;
+        if (current !== audio || token !== playToken) return;
         current = null; settle = null;
         setState({ audioState: 'idle', playingKey: null });
         resolve(result);
       };
       audio.onended = () => finish('ended');
       audio.onerror = () => finish('error');
-      audio.play().catch(err => finish(err && err.name === 'NotAllowedError' ? 'blocked' : 'error'));
+      audio.src = url;
+      const p = audio.play();
+      if (p) p.then(() => { unlocked = true; }).catch(err => finish(err && err.name === 'NotAllowedError' ? 'blocked' : err && err.name === 'AbortError' ? 'cancelled' : 'error'));
     });
   }
   async function playSequence(steps) {
@@ -1750,7 +1816,10 @@ const MitraAudio = (() => {
     };
   })();
 
-  return { stopAllAudio, playAudioClip, playSequence, chime, voice, measureRoom, alarm, rmsDb, createCaptureTap, recorder, monitor, toWav, encodeWav };
+  /** Read-only snapshot of the playback element (diagnostics / support). */
+  const playbackStatus = () => shared ? { paused: shared.paused, currentTime: +shared.currentTime.toFixed(2), readyState: shared.readyState,
+    src: String(shared.src).startsWith('data:') ? 'silent-unlock' : String(shared.src).replace(location.origin, ''), unlocked } : null;
+  return { unlock, isUnlocked: () => unlocked, playbackStatus, stopAllAudio, playAudioClip, playSequence, chime, voice, measureRoom, alarm, rmsDb, createCaptureTap, recorder, monitor, toWav, encodeWav };
 })();
 
 
@@ -2413,6 +2482,8 @@ const MitraLogic = (() => {
   async function startScreening() {
     const sc = getState().screening;
     if (sc.active || sc.starting) return;
+    // Must run synchronously inside the click, before any await, to count as a user gesture.
+    MitraAudio.unlock();
     setScreen({ starting: true, error: null });
     try {
       await MitraSensors.start(onScreenLevel);
@@ -2468,6 +2539,12 @@ const MitraLogic = (() => {
       });
       if (res.reference) { refreshReferences(); showToast('📸 Reference frame saved' + (res.reference.observation ? ' with a Groq observation' : '')); }
       if (vision && res.vision && res.vision.error) showToast('Groq Vision: ' + res.vision.error);
+      if (res.comfort_audio && res.comfort_audio.url) {
+        const ca = res.comfort_audio;
+        setScreen({ lastComfort: { ...ca, at: Date.now(), played: false, blocked: false } });
+        if (getState().screening.autoComfort) playComfort();
+        else showToast(`💖 ${LABEL_COPY[ca.emotion] || 'Distress'} detected — auto-play is off; press Play on the comfort card`);
+      }
       if (res.alert) { showToast(`Alert sent to parents · ${(EVENT_META[res.alert.type] || EVENT_FALLBACK).label}`); handleServerPoll(); }
       return res;
     } catch (err) {
@@ -2478,10 +2555,24 @@ const MitraLogic = (() => {
       setScreen({ analyzing: false, busy: null });
     }
   }
+  /** Play (or replay) the latest saved comfort clip; a second press while playing pauses it. */
+  function playComfort({ toggle = false } = {}) {
+    const lc = getState().screening.lastComfort;
+    if (!lc || !lc.url) return;
+    if (toggle && String(getState().playingKey || '').startsWith('scr-comfort:')) { MitraAudio.stopAllAudio(); return; }
+    const key = 'scr-comfort:' + lc.at;
+    MitraAudio.playAudioClip(MitraAPI.resolveUrl(lc.url), { mode: 'parent', key }).then(r => {
+      const cur = getState().screening.lastComfort;
+      if (!cur || cur.at !== lc.at) return;
+      if (r === 'blocked') { setScreen({ lastComfort: { ...cur, blocked: true } }); showToast('🔇 The browser blocked sound — press ▶ Play on the comfort card'); }
+      else if (r === 'error') showToast(`Couldn’t play ${lc.id}.wav — the file may be missing in parent_voice/`);
+    });
+    setScreen({ lastComfort: { ...lc, played: true, blocked: false } });
+  }
   function setScreenPref(key, value) {
     setScreen({ [key]: value });
     const sc = getState().screening;
-    saveLS(CONFIG.SCREEN_PREFS_KEY, { auto: sc.auto, sync: sc.sync });
+    saveLS(CONFIG.SCREEN_PREFS_KEY, { auto: sc.auto, sync: sc.sync, autoComfort: sc.autoComfort });
   }
   const setAbsentAlert = on => patchSettings({ triggers: { absent: !!on } });
   const togglePip = () => setState(s => ({ pipOpen: !s.pipOpen }));
@@ -2524,6 +2615,77 @@ const MitraLogic = (() => {
       setState({ settingsSaving: false, settingsErrors: (err.data && err.data.errors) || {}, settingsMessage: err.message });
     }
   }
+  /* Auto-save: every switch, checkbox and field in the Alert settings form is saved on change
+     (text fields on blur), so nothing is lost when the bottom "Save" button is never pressed. */
+  const E164 = /^\+[1-9]\d{7,14}$/;
+  const cleanPhone = v => String(v || '').replace(/[\s\-().]/g, '');
+  const setFieldStatus = (name, st) => setState(s => ({ fieldStatus: { ...s.fieldStatus, [name]: st } }));
+  function settingPatchFor(el) {
+    const n = el.name;
+    if (n.startsWith('trigger_')) return [{ triggers: { [n.slice(8)]: el.checked } }, 'triggers'];
+    if (el.type === 'checkbox') return [{ [n]: el.checked }, n];
+    if (el.type === 'number') return [{ [n]: Number(el.value) }, n];
+    if (n === 'parent_phone' || n === 'secondary_phone') return [{ [n]: cleanPhone(el.value) }, n];
+    return [{ [n]: el.value.trim() }, n];
+  }
+  async function autoSaveSetting(el) {
+    if (!el || !el.name || getState().settingsAvailable === false) return;
+    const [patch, key] = settingPatchFor(el);
+    if (key in patch && (key === 'parent_phone' || key === 'secondary_phone') && patch[key] && !E164.test(patch[key])) {
+      setState(s => ({ settingsErrors: { ...s.settingsErrors, [key]: 'Use international format with country code, e.g. +919876543210' } }));
+      setFieldStatus(key, { state: 'bad', text: 'Not saved' });
+      return;
+    }
+    setFieldStatus(key, { state: 'busy', text: 'Saving…' });
+    try {
+      const r = await MitraAPI.saveSettings(patch);
+      setState(s => {
+        const errs = { ...s.settingsErrors }; delete errs[key];
+        return { settings: r.settings, settingsErrors: errs, ntfyEffective: r.ntfy_topic_effective || '',
+                 fieldStatus: { ...s.fieldStatus, [key]: { state: 'ok', text: 'Saved ✓', at: Date.now() } } };
+      });
+      if (key === 'language' && LANGUAGES[r.settings.language]) { setState({ language: r.settings.language }); saveLS(CONFIG.LANGUAGE_KEY, r.settings.language); }
+      if (key === 'enable_browser_push' && r.settings.enable_browser_push && 'Notification' in window && Notification.permission === 'default') {
+        try { Notification.requestPermission(); } catch {}
+      }
+    } catch (err) {
+      const errs = (err.data && err.data.errors) || {};
+      setState(s => ({ settingsErrors: { ...s.settingsErrors, ...errs } }));
+      setFieldStatus(key, { state: 'bad', text: errs[key] ? 'Not saved' : 'Not saved — ' + err.message });
+    }
+  }
+  /** Before a Test, save what is typed/switched right now — so a Test never runs against stale settings. */
+  async function flushBeforeTest(channel) {
+    const f = document.getElementById('settingsForm');
+    if (!f) return null;
+    const patch = {};
+    const phone = cleanPhone(f.elements.parent_phone && f.elements.parent_phone.value);
+    if (channel === 'sms' || channel === 'call') {
+      if (!phone) return 'Type the parent phone number first (with country code, e.g. +919876543210)';
+      if (!E164.test(phone)) {
+        setState(s => ({ settingsErrors: { ...s.settingsErrors, parent_phone: 'Use international format with country code, e.g. +919876543210' } }));
+        return 'Parent phone must include the country code, e.g. +919876543210';
+      }
+    }
+    if (phone && E164.test(phone)) patch.parent_phone = phone;
+    const sw = f.elements['enable_' + channel];
+    if (sw) patch['enable_' + channel] = sw.checked;
+    if (channel === 'ntfy' && f.elements.ntfy_topic && f.elements.ntfy_topic.value.trim()) patch.ntfy_topic = f.elements.ntfy_topic.value.trim();
+    if (!Object.keys(patch).length) return null;
+    try {
+      const r = await MitraAPI.saveSettings(patch);
+      setState(s => {
+        const errs = { ...s.settingsErrors }; Object.keys(patch).forEach(k => delete errs[k]);
+        const fs = { ...s.fieldStatus }; Object.keys(patch).forEach(k => { fs[k] = { state: 'ok', text: 'Saved ✓', at: Date.now() }; });
+        return { settings: r.settings, settingsErrors: errs, fieldStatus: fs, ntfyEffective: r.ntfy_topic_effective || '' };
+      });
+      return null;
+    } catch (err) {
+      const errs = (err.data && err.data.errors) || {};
+      setState(s => ({ settingsErrors: { ...s.settingsErrors, ...errs } }));
+      return Object.values(errs)[0] || ('Settings not saved — ' + err.message);
+    }
+  }
   async function testChannel(channel) {
     if (channel === 'browser_push') {
       if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} }
@@ -2536,6 +2698,8 @@ const MitraLogic = (() => {
       return;
     }
     setState(s => ({ notifyTests: { ...s.notifyTests, [channel]: { pending: true } } }));
+    const flushErr = await flushBeforeTest(channel);
+    if (flushErr) { setState(s => ({ notifyTests: { ...s.notifyTests, [channel]: { error: flushErr } } })); return; }
     try {
       const r = await MitraAPI.testNotify(channel);
       setState(s => ({ notifyTests: { ...s.notifyTests, [channel]: { attempt: r.attempt } } }));
@@ -2551,7 +2715,7 @@ const MitraLogic = (() => {
     if (getState().settingsAvailable === false) return;
     try {
       const r = await MitraAPI.getCredentials();
-      setState(s => ({ credentials: r.credentials, credentialsWritable: r.writable, credGitignored: r.gitignored, credVersion: s.credentials ? s.credVersion : s.credVersion + 1 }));
+      setState(s => ({ credentials: r.credentials, credentialsWritable: r.writable, credGitignored: r.gitignored, credVault: r.vault || null, credVersion: s.credentials ? s.credVersion : s.credVersion + 1 }));
     } catch {}
   }
   function capsFrom(r) {
@@ -2565,7 +2729,7 @@ const MitraLogic = (() => {
     try {
       const r = await MitraAPI.saveCredentials(patch);
       setState(s => ({ credentials: r.credentials, credVersion: s.credVersion + 1, capabilities: capsFrom(r) }));
-      setCredMsg(group, { ok: true, text: `Saved to .env on the hub: ${r.saved.join(', ')} — active now, no restart. Press Test to check delivery.` });
+      setCredMsg(group, { ok: true, text: `Encrypted into .env on the hub (Windows DPAPI): ${r.saved.join(', ')} — active now, no restart. Press Test to check delivery.` });
     } catch (err) { setCredMsg(group, { bad: true, text: err.message }); }
     finally { setState({ credBusy: null }); }
   }
@@ -2732,8 +2896,8 @@ const MitraLogic = (() => {
     handleServerPoll, handleDistressEvent, markAlertRead, dismissModal, modalSpeakDirect, clearAlerts, stopAlarm, testAlarm,
     speakText, togglePushToTalk, sendSoftTale, sendComfortClip,
     toggleMonitor, setMonitorSource, setMonitorPrefs, calibrateRoom, setStressThreshold, setCryThreshold, patchSettings,
-    startScreening, stopScreening, runAnalysis, setScreenPref, setAbsentAlert, togglePip, openLightbox, closeLightbox,
-    saveSettings, testChannel, loadSettings, saveCredGroup, clearCredGroup, detectTelegram, connectNtfy,
+    startScreening, stopScreening, runAnalysis, playComfort, setScreenPref, setAbsentAlert, togglePip, openLightbox, closeLightbox,
+    saveSettings, testChannel, autoSaveSetting, loadSettings, saveCredGroup, clearCredGroup, detectTelegram, connectNtfy,
     toggleRecording, deleteRecording, playRecording, uploadRecording, uploadAllRecordings,
     downloadAllRecordings, exportAllRecordings: downloadAllRecordings, refreshDeviceClips,
   };
@@ -2907,6 +3071,28 @@ const MitraUI = (() => {
   function metricRow(label, value, display, note = '') {
     return `<div class="metric ${value == null ? 'na' : ''}" ${note ? `title="${esc(note)}"` : ''}><span>${esc(label)}</span><span class="bar"><i class="${tone01(value)}" style="width:${value == null ? 0 : Math.round(Math.min(1, value) * 100)}%"></i></span><span class="v">${display}</span></div>`;
   }
+  const COMFORT_BAR_H = [10, 18, 26, 14, 22, 28, 12, 20, 26, 16, 24, 10, 18, 22];
+  /** Warm card under the live stage: which saved parent clip is playing, why, with Pause/Replay. */
+  function renderComfortCard(s) {
+    const el = $('comfortCard'), lc = s.screening.lastComfort;
+    const playing = !!lc && s.playingKey === 'scr-comfort:' + lc.at;
+    if (!lc || (!playing && !lc.blocked && Date.now() - lc.at > 90000)) { patch(el, ''); return; }
+    const emo = (LABEL_COPY[lc.emotion] || lc.emotion || 'Distress').replace(/^\S+\s/, '');
+    const head = playing ? `💖 Playing saved comfort audio (${esc(lc.id)}) for ${esc(emo)}`
+      : lc.blocked ? `🔇 Sound was blocked — press Play for ${esc(lc.id)} (${esc(emo)})`
+      : lc.played ? `💖 Played saved comfort audio (${esc(lc.id)}) for ${esc(emo)}`
+      : `💖 Comfort audio ready (${esc(lc.id)}) for ${esc(emo)} — auto-play is off`;
+    patch(el, `<div class="comfort-card${playing ? ' playing' : ''}${lc.blocked ? ' blocked' : ''}">
+      <button type="button" class="play-fab" data-action="comfort-toggle" aria-label="${playing ? 'Pause' : 'Replay'} comfort audio">${icon(playing ? 'pause' : 'play')}</button>
+      <div class="cc-body">
+        <div class="cc-head">${head}</div>
+        <div class="bars" aria-hidden="true">${COMFORT_BAR_H.map(h => `<i style="height:${h}px"></i>`).join('')}</div>
+        ${lc.text ? `<div class="cc-quote">“${esc(lc.text)}”</div>` : ''}
+        <div class="cc-why">${lc.reason ? esc(lc.reason) + ' · ' : ''}at ${esc(new Date(lc.at).toLocaleTimeString())} · also sent to the Child Companion</div>
+      </div>
+      <button type="button" class="btn-soft" data-action="comfort-toggle">${playing ? 'Pause' : 'Replay'}</button>
+    </div>`);
+  }
   function renderScreening(s) {
     const sc = s.screening, r = latestScreen(s), local = sc.active;
     const tg = $('screenToggle');
@@ -2919,7 +3105,7 @@ const MitraUI = (() => {
     setText($('analyzeBtn'), sc.busy === 'vision' ? '👀 Asking Groq Vision…' : '👀 Analyze Now (Groq Vision)');
     setText($('refBtn'), sc.busy === 'reference' ? '📸 Saving…' : '📸 Capture Reference Frame');
     [$('calRoomBtn'), $('calRoomBtn2')].forEach(b => { if (b) { b.disabled = sc.calibrating; setText(b, sc.calibrating ? '🎚️ Measuring… keep quiet' : '🎚️ Calibrate Quiet Room (3s)'); } });
-    $('tgAuto').checked = sc.auto; $('tgSync').checked = sc.sync;
+    $('tgAuto').checked = sc.auto; $('tgSync').checked = sc.sync; $('tgComfort').checked = sc.autoComfort;
     $('tgAbsent').checked = !!s.settings?.triggers?.absent; $('tgAbsent').disabled = !s.settingsAvailable;
     const v = $('screenVideo'), st = MitraSensors.stream();
     if (v.srcObject !== st) v.srcObject = st;
@@ -2936,9 +3122,10 @@ const MitraUI = (() => {
       chips.push(`<span class="schip">Faces <b>${r.face_count ?? '—'}</b></span>`);
       if (r.posture) chips.push(`<span class="schip">Posture <b>${esc(r.posture)}</b></span>`);
       chips.push(`<span class="schip ${r.motion_agitation_score >= 0.6 ? 'bad' : r.motion_agitation_score >= 0.3 ? 'warn' : ''}">Motion <b>${num(r.motion_agitation_score, 2)}</b></span>`);
-      if (r.pose_or_expression) chips.push(`<span class="schip ${r.pose_or_expression === 'distressed' ? 'bad' : r.pose_or_expression === 'restless' || r.pose_or_expression === 'away' ? 'warn' : 'good'}">State <b>${esc(LABEL_COPY[r.pose_or_expression] || r.pose_or_expression)}</b></span>`);
-      if (r.expression && r.expression.smile != null) chips.push(`<span class="schip">Smile <b>${pct(r.expression.smile)}</b></span>`);
-      if (r.expression && r.expression.eyes_closed != null) chips.push(`<span class="schip">Eyes closed <b>${pct(r.expression.eyes_closed)}</b></span>`);
+      const emoKey = r.detected_emotion || r.pose_or_expression;
+      const isBadEmo = ['crying', 'distressed', 'sad', 'scared', 'angry'].includes(emoKey);
+      if (emoKey) chips.push(`<span class="schip ${isBadEmo ? 'bad' : emoKey === 'restless' || emoKey === 'away' || emoKey === 'sleepy' ? 'warn' : 'good'}">Emotion <b>${esc(LABEL_COPY[emoKey] || emoKey)}${r.emotion_confidence != null ? ' ' + pct(r.emotion_confidence) : ''}</b></span>`);
+      if (r.emotion_score != null) chips.push(`<span class="schip ${r.emotion_score < 45 ? 'bad' : r.emotion_score < 65 ? 'warn' : 'good'}">Mood score <b>${r.emotion_score}/100</b></span>`);
     }
     patch($('stageChips'), chips.join(''));
     let status = '';
@@ -2946,9 +3133,13 @@ const MitraUI = (() => {
     else if (sc.active && r) status = `<span class="tag ready">${sc.cycles} analyses</span> last ${esc(formatAgo(new Date(r.t * 1000)))} · ${r.timings_ms ? `${r.timings_ms.total_ms} ms on the hub` : ''}${r.errors && Object.keys(r.errors).length ? ` · <span class="err">${esc(Object.values(r.errors).join(' · '))}</span>` : ''}`;
     else if (sc.active) status = 'Waiting for the first analysis…';
     patch($('screenStatus'), status);
+    renderComfortCard(s);
 
-    // stress + audio side cards
-    patch($('screenStress'), stressBlock(s, r, true));
+    // emotion breakdown + stress + audio side cards
+    const emoScores = r?.emotion_scores || null;
+    const emoRows = emoScores ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><div class="mini-head" style="margin-bottom:8px"><h3>Detected Emotions</h3><span class="when">${r.emotion_score != null ? `Mood ${r.emotion_score}/100` : ''}</span></div>`
+      + EMOTION_BARS.map(([k, lbl]) => metricRow(lbl, emoScores[k], emoScores[k] == null ? '—' : pct(emoScores[k]))).join('') + `</div>` : '';
+    patch($('screenStress'), stressBlock(s, r, true) + emoRows);
     const ae = s.screenState.engines?.cry_model;
     patch($('screenAudio'), `<div class="mini-head"><h3>Audio ML</h3><span class="when">${r ? esc(formatAgo(new Date(r.t * 1000))) : ''}</span></div>
       ${metricRow('Cry probability', r?.cry_probability, r?.cry_probability == null ? '—' : r.cry_probability.toFixed(2), 'cry_model.pkl (SVC) on 258 librosa features of the last 3 s')}
@@ -2959,7 +3150,7 @@ const MitraUI = (() => {
         <input type="range" min="0.5" max="0.99" step="0.01" id="cryRange" data-input="cry-threshold" ${s.settingsAvailable ? '' : 'disabled'}/>
         <b id="cryVal" style="color:var(--coral-deep)"></b></label></div>
       <p class="fine">${ae && ae.ready ? `${esc(ae.info.model)} (${esc(ae.info.kernel)}, ${ae.info.features} features) loaded from <code>cry_model.pkl</code>.` : ae && ae.error ? `<span style="color:var(--coral-deep)">${esc(ae.error)}</span>` : 'Cry model loading on the hub…'}
-        Measured on the hub: real cries score 0.85–1.00, but ordinary speech scores 0.67–0.97 — so a cry alert also needs the sound to be loud for two 3-second windows in a row, and is paused while your child is chatting with Mitra.</p>`);
+        Measured on the hub: real cries score 0.85–1.00, but ordinary speech scores 0.67–0.97 — so sound alone needs two loud 3-second windows in a row (paused while your child is chatting with Mitra). One window is enough when the camera also sees a crying face (P ≥ 0.65), and a clearly crying face or a Groq Vision “crying” verdict fires on its own.</p>`);
     const cr = $('cryRange');
     if (cr && s.settings) { if (document.activeElement !== cr && Number(cr.value) !== s.settings.cry_threshold) cr.value = s.settings.cry_threshold; setText($('cryVal'), Number(s.settings.cry_threshold).toFixed(2)); }
 
@@ -3013,10 +3204,12 @@ const MitraUI = (() => {
       const w = f.w * size.w * scale, h = f.h * size.h * scale;
       const x = cw - (ox + (f.x + f.w) * size.w * scale);   // mirrored like the preview
       const y = oy + f.y * size.h * scale;
-      const col = i === 0 && r.pose_or_expression === 'distressed' ? '#E85D5D' : '#2A9D8F';
+      const emoKey = r.detected_emotion || r.pose_or_expression || 'calm';
+      const col = i === 0 ? (EMOTION_COLOR[emoKey] || '#2A9D8F') : '#2A9D8F';
       ctx.strokeStyle = col; ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h); ctx.stroke();
-      const label = i === 0 ? `${LABEL_COPY[r.pose_or_expression] || 'face'}${r.expression && r.expression.smile != null ? ` · smile ${pct(r.expression.smile)}` : ''}` : 'face';
+      const confTxt = r.emotion_confidence != null ? ` · ${pct(r.emotion_confidence)}` : '';
+      const label = i === 0 ? `${LABEL_COPY[emoKey] || emoKey}${confTxt}` : 'face';
       const tw = ctx.measureText(label).width + 14;
       ctx.fillStyle = col; ctx.fillRect(x, Math.max(0, y - 22), tw, 20);
       ctx.fillStyle = '#fff'; ctx.fillText(label, x + 7, Math.max(14, y - 8));
@@ -3304,14 +3497,21 @@ const MitraUI = (() => {
   let settingsRendered = -1, credRendered = -1;
   function credInputs(group, s) {
     const creds = s.credentials || {}, writable = s.credentialsWritable !== false;
-    return `<div class="row2">${CRED_GROUPS[group].map(([key, label, type]) => {
+    const anySet = CRED_GROUPS[group].some(([k]) => (creds[k] || {}).set);
+    const allSet = CRED_GROUPS[group].every(([k]) => (creds[k] || {}).set);
+    const summaryLabel = allSet
+      ? '🔒 Encrypted in .env (Windows DPAPI) — click to replace or remove keys'
+      : anySet
+        ? '🔒 Partially configured (encrypted) — click to finish setup'
+        : '🔒 Enter private credentials (encrypted on this PC with Windows DPAPI)';
+    return `<details class="cred-vault"><summary>${summaryLabel}</summary><div class="row2">${CRED_GROUPS[group].map(([key, label, type]) => {
       const c = creds[key] || {};
-      const ph = c.set ? `saved ${c.masked} — type to replace` : (c.hint || '');
+      const ph = c.set ? (c.encrypted ? 'Saved · encrypted — type to replace' : 'Saved — type to replace') : (CRED_HINTS[key] || '');
       return `<label class="field"><span>${esc(label)}</span><input class="input" data-cred="${key}" data-cred-group="${group}" type="${type}" autocomplete="off" spellcheck="false" placeholder="${esc(ph)}" ${writable ? '' : 'disabled'}/></label>`;
     }).join('')}</div>
-    <div class="acts"><button type="button" class="btn-primary sm" data-action="cred-save" data-group="${group}" ${writable ? '' : 'disabled'}>Save to .env</button>
-      ${CRED_GROUPS[group].some(([k]) => (creds[k] || {}).set) ? `<button type="button" class="link-btn" data-action="cred-clear" data-group="${group}" ${writable ? '' : 'disabled'}>Remove keys</button>` : ''}
-      ${group === 'telegram' ? `<button type="button" class="btn-soft" data-action="tg-detect">🔎 Auto-Detect My Chat ID</button>` : ''}</div>`;
+    <div class="acts" style="margin-top:10px"><button type="button" class="btn-primary sm" data-action="cred-save" data-group="${group}" ${writable ? '' : 'disabled'}>Encrypt & save</button>
+      ${anySet ? `<button type="button" class="link-btn" data-action="cred-clear" data-group="${group}" ${writable ? '' : 'disabled'}>Remove keys</button>` : ''}
+      ${group === 'telegram' ? `<button type="button" class="btn-soft" data-action="tg-detect">🔎 Auto-Detect My Chat ID</button>` : ''}</div></details>`;
   }
   function setupStatic(key, s) {
     const g = SETUP_FOR[key];
@@ -3344,7 +3544,7 @@ const MitraUI = (() => {
   }
   function renderAlertSettings(s) {
     const body = $('settingsBody');
-    setText($('credNote'), s.credentialsWritable === false ? 'Keys can be changed only on the hub computer (localhost)' : s.credentials ? `Keys live in .env on the hub${s.credGitignored ? ' (git-ignored)' : ''} — the page only sees masked values` : '');
+    setText($('credNote'), s.credentialsWritable === false ? 'Keys can be changed only on the hub computer (localhost)' : s.credentials ? `Keys are ${s.credVault === 'dpapi' ? 'encrypted with Windows DPAPI' : 'stored'} in .env on the hub${s.credGitignored ? ' (git-ignored)' : ''} — this page never receives them, only whether each one is set` : '');
     if (s.settingsAvailable === false) {
       settingsRendered = -1;
       patch(body, `<div class="empty" style="font-size:.95rem">${s.serverOnline === false ? 'Settings load when the Mitra hub is reachable.'
@@ -3360,35 +3560,35 @@ const MitraUI = (() => {
       body.innerHTML = `
         <form id="settingsForm" autocomplete="off" novalidate>
           <div class="settings-grid">
-            <label class="field"><span>Parent phone (E.164, for SMS & calls)</span><input class="input" name="parent_phone" inputmode="tel" placeholder="+919876543210" value="${esc(st.parent_phone)}"/><small data-err="parent_phone"></small></label>
-            <label class="field"><span>Second phone (optional)</span><input class="input" name="secondary_phone" inputmode="tel" placeholder="+14155550123" value="${esc(st.secondary_phone)}"/><small data-err="secondary_phone"></small></label>
-            <label class="field"><span>Name shown to child</span><input class="input" name="parent_label" maxlength="24" value="${esc(st.parent_label)}"/></label>
-            <label class="field"><span>Child’s language</span><select class="select" name="language">${Object.entries(LANGUAGES).map(([c, l]) => `<option value="${c}" ${st.language === c ? 'selected' : ''}>${esc(l.label)}</option>`).join('')}</select></label>
+            <label class="field"><span>Parent phone (E.164, for SMS & calls)<small class="saved-tick" data-saved="parent_phone"></small></span><input class="input" name="parent_phone" inputmode="tel" placeholder="+919876543210" value="${esc(st.parent_phone)}"/><small data-err="parent_phone"></small></label>
+            <label class="field"><span>Second phone (optional)<small class="saved-tick" data-saved="secondary_phone"></small></span><input class="input" name="secondary_phone" inputmode="tel" placeholder="+14155550123" value="${esc(st.secondary_phone)}"/><small data-err="secondary_phone"></small></label>
+            <label class="field"><span>Name shown to child<small class="saved-tick" data-saved="parent_label"></small></span><input class="input" name="parent_label" maxlength="24" value="${esc(st.parent_label)}"/></label>
+            <label class="field"><span>Child’s language<small class="saved-tick" data-saved="language"></small></span><select class="select" name="language">${Object.entries(LANGUAGES).map(([c, l]) => `<option value="${c}" ${st.language === c ? 'selected' : ''}>${esc(l.label)}</option>`).join('')}</select></label>
           </div>
-          <div class="sub-h">Channels — switch on, set up, then Test (results are the provider’s real responses)</div>
+          <div class="sub-h">Channels — switch on, set up, then Test (every change saves instantly; Test saves the phone number first)</div>
           <div class="channels">${NOTIFY_CHANNELS.map(ch => `
             <div class="channel">
               <input type="checkbox" class="switch" name="enable_${ch.key}" ${st['enable_' + ch.key] ? 'checked' : ''} aria-label="Enable ${esc(ch.label)}"/>
-              <div><div class="cname">${esc(ch.label)} <span data-cap="${ch.key}"></span></div><div class="cprov">${esc(ch.provider)}</div></div>
+              <div><div class="cname">${esc(ch.label)} <span data-cap="${ch.key}"></span><small class="saved-tick" data-saved="enable_${ch.key}"></small></div><div class="cprov">${esc(ch.provider)}</div></div>
               <button type="button" class="btn-soft" data-action="test-channel" data-channel="${ch.key}">Test</button>
               <div class="cres" data-res="${ch.key}"></div>
               ${SETUP_FOR[ch.key] ? `<div class="setup"><div data-setup-static="${ch.key}"></div><div data-setup-dyn="${ch.key}"></div>
-                ${ch.key === 'ntfy' ? `<details><summary class="iv-hint" style="cursor:pointer">Use my own topic instead</summary><input class="input" name="ntfy_topic" style="margin-top:6px;width:100%" placeholder="${s.ntfySource === 'env' ? 'Using NTFY_TOPIC from .env' : 'a-hard-to-guess-topic'}" value="${esc(st.ntfy_topic)}"/><small data-err="ntfy_topic"></small></details>` : ''}</div>` : ''}
+                ${ch.key === 'ntfy' ? `<details><summary class="iv-hint" style="cursor:pointer">Use my own topic instead</summary><input class="input" name="ntfy_topic" style="margin-top:6px;width:100%" placeholder="${s.ntfySource === 'env' ? 'Using NTFY_TOPIC from .env' : 'a-hard-to-guess-topic'}" value="${esc(st.ntfy_topic)}"/><small data-err="ntfy_topic"></small><small class="saved-tick" data-saved="ntfy_topic"></small></details>` : ''}</div>` : ''}
               ${ch.key === 'call' ? `<div class="cres" style="grid-column:2/-1;color:var(--stone)">Uses the Twilio keys from the SMS card.</div>` : ''}
             </div>`).join('')}</div>
           <div class="sub-h">In-browser escalation alarm</div>
           <div class="channel"><input type="checkbox" class="switch" name="enable_escalation_alarm" ${st.enable_escalation_alarm ? 'checked' : ''} aria-label="Enable escalation alarm"/>
-            <div><div class="cname">${icon('bell')} Urgent ringtone + persistent popup <span data-alarm-state></span></div><div class="cprov">Rings on this dashboard (laptop or phone on the same Wi-Fi) until you acknowledge.</div></div>
+            <div><div class="cname">${icon('bell')} Urgent ringtone + persistent popup <span data-alarm-state></span><small class="saved-tick" data-saved="enable_escalation_alarm"></small></div><div class="cprov">Rings on this dashboard (laptop or phone on the same Wi-Fi) until you acknowledge.</div></div>
             <button type="button" class="btn-soft" data-action="alarm-test">Test alarm</button>
             ${lan ? `<div class="cres" style="grid-column:1/-1;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><img src="${esc(CONFIG.SERVER)}/api/qr?data=${encodeURIComponent(lan)}" width="96" height="96" alt="QR code for the dashboard address" style="border-radius:8px;border:1px solid var(--line)"/><span>Open on your phone (same Wi-Fi): <a class="lan" href="${esc(lan)}" target="_blank" rel="noopener">${esc(lan)}</a><br/><span style="color:var(--stone)">Alerts, popups, the alarm and interventions work there; camera & mic need the hub computer.</span></span></div>` : ''}
           </div>
-          <div class="sub-h">Alert me for</div>
+          <div class="sub-h">Alert me for <small class="saved-tick" data-saved="triggers"></small></div>
           <div class="trig-row">${TRIGGER_TYPES.map(([k, l]) => `<label class="chk"><input type="checkbox" name="trigger_${k}" ${st.triggers[k] ? 'checked' : ''}/> ${esc(l)}</label>`).join('')}</div>
           <div class="inline-row" style="margin-top:14px">
-            <label class="field" style="width:190px"><span>SMS / call cooldown (s)</span><input class="input" type="number" name="call_cooldown_sec" min="0" max="3600" value="${st.call_cooldown_sec}"/><small data-err="call_cooldown_sec"></small></label>
-            <label class="field" style="width:220px"><span>“Left camera” alert after (s)</span><input class="input" type="number" name="absent_after_sec" min="15" max="1800" value="${st.absent_after_sec}"/><small data-err="absent_after_sec"></small></label>
+            <label class="field" style="width:190px"><span>SMS / call cooldown (s)<small class="saved-tick" data-saved="call_cooldown_sec"></small></span><input class="input" type="number" name="call_cooldown_sec" min="0" max="3600" value="${st.call_cooldown_sec}"/><small data-err="call_cooldown_sec"></small></label>
+            <label class="field" style="width:220px"><span>“Left camera” alert after (s)<small class="saved-tick" data-saved="absent_after_sec"></small></span><input class="input" type="number" name="absent_after_sec" min="15" max="1800" value="${st.absent_after_sec}"/><small data-err="absent_after_sec"></small></label>
           </div>
-          <div class="save-row"><span id="settingsMsg"></span><button type="submit" class="btn-primary sm" id="settingsSave">Save alert settings</button></div>
+          <div class="save-row"><span id="settingsMsg"></span><button type="submit" class="btn-primary sm" id="settingsSave">Save all</button></div>
         </form>`;
     }
     if (credRendered !== s.credVersion) {
@@ -3419,10 +3619,18 @@ const MitraUI = (() => {
       if (input) input.classList.toggle('bad', !!err);
       if (err) setText(el, err);
     });
+    body.querySelectorAll('[data-saved]').forEach(el => {
+      const f = s.fieldStatus[el.dataset.saved];
+      const stamp = f ? `${f.state}:${f.at || ''}:${f.text}` : '';
+      if (el.dataset.stamp === stamp) return;      // unchanged → keep the fade animation running
+      el.dataset.stamp = stamp;
+      el.className = 'saved-tick' + (f ? ' ' + f.state : '');
+      el.textContent = f ? f.text : '';
+    });
     const msg = $('settingsMsg');
     if (msg) { msg.className = s.settingsMessage === 'Saved ✓' ? 'msg-ok' : 'msg-err'; setText(msg, s.settingsMessage || ''); }
     const save = $('settingsSave');
-    if (save) { save.disabled = s.settingsSaving; setText(save, s.settingsSaving ? 'Saving…' : 'Save alert settings'); }
+    if (save) { save.disabled = s.settingsSaving; setText(save, s.settingsSaving ? 'Saving…' : 'Save all'); }
   }
   function collectSettingsForm() {
     const f = $('settingsForm');
@@ -3658,6 +3866,7 @@ const MitraUI = (() => {
     'screen-toggle': () => MitraStore.getState().screening.active ? L().stopScreening() : L().startScreening(),
     'screen-reference': () => L().runAnalysis({ reference: true, vision: true }),
     'screen-analyze': () => L().runAnalysis({ vision: true }),
+    'comfort-toggle': () => L().playComfort({ toggle: true }),
     'pip-toggle': () => L().togglePip(),
     'lightbox': (d, e) => { e.stopPropagation(); L().openLightbox(d.url); },
     'lightbox-close': () => L().closeLightbox(),
@@ -3683,11 +3892,15 @@ const MitraUI = (() => {
     'comfort-choice': el => MitraStore.setState({ comfortChoice: el.value || null }),
     'screen-auto': el => L().setScreenPref('auto', el.checked),
     'screen-sync': el => L().setScreenPref('sync', el.checked),
+    'screen-comfort': el => L().setScreenPref('autoComfort', el.checked),
     'screen-absent': el => L().setAbsentAlert(el.checked),
   };
 
   function mount() {
     $('childLang').innerHTML = Object.entries(LANGUAGES).map(([c, l]) => `<option value="${c}">${esc(l.label)}</option>`).join('');
+    // The first tap anywhere unlocks audio for this tab (comfort clips, parent messages, alarm).
+    document.addEventListener('pointerdown', () => MitraAudio.unlock(), { capture: true, once: true });
+    document.addEventListener('keydown', () => MitraAudio.unlock(), { capture: true, once: true });
     document.addEventListener('click', e => {
       const el = e.target.closest('[data-action]');
       if (!el || el.disabled) return;
@@ -3718,6 +3931,12 @@ const MitraUI = (() => {
       e.preventDefault();
       const input = $('speakText');
       if (await L().speakText(input.value)) input.value = '';
+    });
+    // Alert settings auto-save: switches/checkboxes/selects on change, text fields on blur (change).
+    document.addEventListener('change', e => {
+      const el = e.target;
+      if (!el.form || el.form.id !== 'settingsForm' || !el.name || el.dataset.cred) return;
+      L().autoSaveSetting(el);
     });
     document.addEventListener('submit', e => {
       if (e.target.id !== 'settingsForm') return;
